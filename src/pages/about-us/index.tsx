@@ -1,34 +1,181 @@
+import { useForm, type SubmitHandler } from "react-hook-form"
+import { format } from "date-fns"
+import { toZonedTime } from "date-fns-tz"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
 
-export default function AboutUs() {
+type FormData = {
+  name: string
+  email: string
+  position: "teaching" | "non-teaching"
+  specificPosition: string
+  contact: string
+  address: string
+  birthday: string
+  educationalAttainment: string
+}
+
+const teachingPositions = ["Teacher I", "Teacher II", "Teacher III", "Master Teacher"]
+const nonTeachingPositions = ["Librarian", "Guidance Counselor", "Administrative Assistant", "Maintenance Staff"]
+
+export default function Home() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<FormData>()
+  const { toast } = useToast()
+
+  const position = watch("position")
+
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    // Convert birthday to PH timezone
+    const phBirthday = toZonedTime(data.birthday, "Asia/Manila")
+    const formattedBirthday = format(phBirthday, "yyyy-MM-dd")
+
+    // Here you would typically send this data to your backend
+    console.log({ ...data, birthday: formattedBirthday })
+
+    // Generate code number
+    const response = await fetch("/api/generate-code")
+    const { code } = await response.json()
+
+    toast({
+      title: "Registration Submitted",
+      description: `Thank you ${data.name}, your application for ${data.position} (${data.specificPosition}) position has been received. Your registration code is: ${code}`,
+    })
+  }
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">About Us</CardTitle>
-        <CardDescription className="text-center"></CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <section>
-          <h2 className="mb-2 text-xl font-semibold">Our Mission</h2>
-          <p className="text-gray-700">
-          NwSSU Food Waste Data Analytics are committed to leveraging data to combat one of the most pressing global challenges. Globally, an estimated one-third of all food produced is wasted, contributing to environmental degradation, economic loss, and food insecurity. Our team of students aims to inform many people on Food wastes.
+    <div className="container mx-auto py-10">
+      <Card className="w-full max-w-3xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-center">Teacher Registration</CardTitle>
+          <CardDescription className="text-center text-lg">
+            Register for teaching and non-teaching positions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                placeholder="Enter your full name"
+                {...register("name", { required: "Name is required" })}
+              />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" },
+                })}
+              />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Position</Label>
+              <RadioGroup onValueChange={(value) => setValue("position", value as "teaching" | "non-teaching")}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="teaching" id="teaching" />
+                  <Label htmlFor="teaching">Teaching</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="non-teaching" id="non-teaching" />
+                  <Label htmlFor="non-teaching">Non-Teaching</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="specificPosition">Specific Position</Label>
+              <Select onValueChange={(value) => setValue("specificPosition", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a position" />
+                </SelectTrigger>
+                <SelectContent>
+                  {position === "teaching"
+                    ? teachingPositions.map((pos) => (
+                        <SelectItem key={pos} value={pos}>
+                          {pos}
+                        </SelectItem>
+                      ))
+                    : nonTeachingPositions.map((pos) => (
+                        <SelectItem key={pos} value={pos}>
+                          {pos}
+                        </SelectItem>
+                      ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contact">Contact Number</Label>
+              <Input
+                id="contact"
+                placeholder="Enter your contact number"
+                {...register("contact", { required: "Contact number is required" })}
+              />
+              {errors.contact && <p className="text-red-500 text-sm">{errors.contact.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                placeholder="Enter your address"
+                {...register("address", { required: "Address is required" })}
+              />
+              {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthday">Birthday</Label>
+              <Input id="birthday" type="date" {...register("birthday", { required: "Birthday is required" })} />
+              {errors.birthday && <p className="text-red-500 text-sm">{errors.birthday.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="educationalAttainment">Educational Attainment</Label>
+              <Textarea
+                id="educationalAttainment"
+                placeholder="Enter your educational background"
+                {...register("educationalAttainment", { required: "Educational attainment is required" })}
+              />
+              {errors.educationalAttainment && (
+                <p className="text-red-500 text-sm">{errors.educationalAttainment.message}</p>
+              )}
+            </div>
+
+            <Button type="submit" className="w-full">
+              Submit Application
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center space-y-2">
+          <p className="text-sm text-gray-500">By submitting, you agree to our Terms of Service and Privacy Policy.</p>
+          <p className="text-sm text-gray-500">
+            Note: Upon successful registration, a unique code number will be generated for you.
           </p>
-        </section>
-        <section>
-          <h2 className="mb-2 text-xl font-semibold">Our Team</h2>
-          <ul className="text-gray-700 list-disc list-inside">
-          <li>Gilmore Philip P. Mediante - Project Leader</li>
-          <li>Dave M. Managaysay - Data Analyst</li>
-          <li>Anthony R. Alvarez - Researcher</li>
-          <li>John Norbert Jovito - Researcher</li>
-          </ul>
-        </section>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <Button asChild>
-        </Button>
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }
+

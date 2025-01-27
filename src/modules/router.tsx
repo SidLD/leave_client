@@ -1,47 +1,75 @@
-import {createBrowserRouter, createRoutesFromElements, Navigate, Route} from "react-router-dom"
-import { Home } from "@/pages/home"
-import { PrivateLayout, PrivatePrintLayout, PublicLayout } from "./module"
-import { Login } from "@/pages/login"
-import AboutUs from "@/pages/about-us"
-import { SignUp } from "@/pages/sign-up"
-import { AdminDashboard } from "@/pages/admin/dashboard"
-import { ContributorDashboard } from "@/pages/contributor/dashboard"
-import { UserManagement } from "@/pages/admin/user-management"
-import AdminDataEntry from "@/pages/admin/data-entry"
-import ContributorDataEntry from "@/pages/contributor/data-entry"
-import AdminSetting from "@/pages/admin/setting"
-import ContributorSetting from "@/pages/contributor/setting"
-import { FoodWasteReport } from "@/pages/admin/report/view"
+import { createBrowserRouter, createRoutesFromElements, Navigate, Route } from "react-router-dom"
+import { lazy, Suspense } from "react"
+import { PrivateLayout, PublicLayout } from "./module"
+
+const Home = lazy(() => import("@/pages/home").then((module) => ({ default: module.Home })))
+const Login = lazy(() => import("@/pages/login").then((module) => ({ default: module.Login })))
+const AdminDashboard = lazy(() =>
+  import("@/pages/admin/dashboard").then((module) => ({ default: module.AdminDashboard })),
+)
+const UserManagement = lazy(() =>
+  import("@/pages/admin/user-management").then((module) => ({ default: module.UserManagement })),
+)
+const FoodWasteReport = lazy(() =>
+  import("@/pages/admin/report/view").then((module) => ({ default: module.FoodWasteReport })),
+)
+
+const Loading = () => <div>Loading...</div>
 
 const routers = createBrowserRouter(
-    createRoutesFromElements(
-        <>
-            <Route element={<PublicLayout/>}>
-                <Route index path="/" element={<Home />} />
-                <Route  path="/login" element={<Login />} />
-                <Route  path="/sign-up" element={<SignUp />} />
-                <Route  path="/about" element={<AboutUs />} />
-                <Route  path="/report"  element={<FoodWasteReport />}/>
-                <Route  path="*" element={<Navigate to="/" replace />} />
-            </Route>  
-            <Route element={<PrivateLayout/>} >
-               <Route path="/admin">
-                    <Route  index  element={<AdminDashboard />}/>
-                    <Route  path="user-management"  element={<UserManagement />}/>
-                    <Route  path="data-entry"  element={<AdminDataEntry />}/>
-                    <Route  path="report"  element={<FoodWasteReport />}/>
-                    <Route  path="setting"  element={<AdminSetting />}/>
-               </Route>
-               <Route path="/contributor">
-                    <Route  index  element ={ <ContributorDashboard /> }/>
-                    <Route  path="data-entry"  element={<ContributorDataEntry />}/>
-                    <Route  path="setting"  element={<ContributorSetting />}/>
-               </Route>
-            </Route> 
-            <Route element={<PrivatePrintLayout/>} >
-               <Route path="/admin/report" index element={<FoodWasteReport />}/>
-            </Route> 
-        </>
-    )
+  createRoutesFromElements(
+    <>
+      <Route element={<PublicLayout />}>
+        <Route
+          index
+          path="/"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Home />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin-login"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Login />
+            </Suspense>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+      <Route element={<PrivateLayout />}>
+        <Route path="/admin">
+          <Route
+            index
+            element={
+              <Suspense fallback={<Loading />}>
+                <AdminDashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="user-management"
+            element={
+              <Suspense fallback={<Loading />}>
+                <UserManagement />
+              </Suspense>
+            }
+          />
+          <Route
+            path="report"
+            element={
+              <Suspense fallback={<Loading />}>
+                <FoodWasteReport />
+              </Suspense>
+            }
+          />
+        </Route>
+      </Route>
+    </>,
+  ),
 )
+
 export default routers
+
