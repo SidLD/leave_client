@@ -1,6 +1,8 @@
-import { auth } from "./services"
+import { useStore } from "@/store/app.store"
+
 export const dataHeader = () => {
-    return { headers: { "x-access-token": auth.getToken() } }
+    const {getToken} = useStore()
+    return { headers: { "x-access-token": getToken(), "Content-Type": "multipart/form-data" } }
 }
 export const fetchProvincs = async (code:string) => {
     try {
@@ -23,17 +25,5 @@ export const fetchCity = async (code:string) => {
         ) 
     } catch (error) {
         console.log(error)
-    }
-}
-
-export const getRoleRoutePath = ():string => {
-    const role = auth.getRole()
-    switch (role) {
-        case "ADMIN":
-            return "/admin/"
-            break;
-        default:
-            return "/contributor/"
-            break;
     }
 }

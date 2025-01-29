@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Home, Users, FileInput, LogOut, Menu, X, Settings2 } from "lucide-react";
-import { auth } from "@/lib/services";
+import { useStore } from "@/store/app.store"
 
 export default function PrintLayout() {
+  const {clear, getRole} = useStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate()
   const links = [
@@ -57,17 +58,18 @@ export default function PrintLayout() {
     },
   ]
   const handleLogout = () => {
-    auth.clear()
+    clear()
     navigate('/login')
   };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+  const role = getRole() ;
 
   const NavItems = () => (
     <>
-      {links.filter((link) => link.roles.includes(auth.getRole())).map((link, index) => {
+      {links.filter((link) => link.roles.includes(role || '')).map((link, index) => {
         return <li key={index} className="mb-4 md:mb-0 md:mr-6">
         <Link to={link.link} className="flex items-center space-x-2 transition-colors hover:text-gray-300">
           {link.icon}

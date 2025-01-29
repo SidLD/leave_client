@@ -1,6 +1,6 @@
-import UserManagementView from "./view"
+// import UserManagementView from "./view"
 
 
-export const UserManagement = () => {
-  return <UserManagementView />
-}
+// export const UserManagement = () => {
+//   return <UserManagementView />
+// }

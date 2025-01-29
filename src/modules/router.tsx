@@ -7,12 +7,9 @@ const Login = lazy(() => import("@/pages/login").then((module) => ({ default: mo
 const AdminDashboard = lazy(() =>
   import("@/pages/admin/dashboard").then((module) => ({ default: module.AdminDashboard })),
 )
-const UserManagement = lazy(() =>
-  import("@/pages/admin/user-management").then((module) => ({ default: module.UserManagement })),
-)
-const FoodWasteReport = lazy(() =>
-  import("@/pages/admin/report/view").then((module) => ({ default: module.FoodWasteReport })),
-)
+// const UserManagement = lazy(() =>
+//   import("@/pages/admin/user-management").then((module) => ({ default: module.UserManagement })),
+// )
 
 const Loading = () => <div>Loading...</div>
 
@@ -49,22 +46,14 @@ const routers = createBrowserRouter(
               </Suspense>
             }
           />
-          <Route
+          {/* <Route
             path="user-management"
             element={
               <Suspense fallback={<Loading />}>
                 <UserManagement />
               </Suspense>
             }
-          />
-          <Route
-            path="report"
-            element={
-              <Suspense fallback={<Loading />}>
-                <FoodWasteReport />
-              </Suspense>
-            }
-          />
+          /> */}
         </Route>
       </Route>
     </>,

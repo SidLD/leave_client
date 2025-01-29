@@ -1,16 +1,18 @@
 
-
-import { auth } from '@/lib/services';
-import { getRoleRoutePath } from '../lib/helper';
 import { Navigate } from "react-router-dom"
 import DashboardLayout from '@/layouts/DashboardLayout';
 import Guest from '@/layouts/Guest';
 import PrintLayout from '@/layouts/PrintLayout';
-
+import { useStore } from '@/store/app.store';
 export const PublicLayout = () => {
-    
-    if(auth.isAuthenticated()){
-        return  <Navigate to={getRoleRoutePath()} />;
+   const { getToken , getRole} = useStore()
+    if(getToken()){
+        switch (getRole()) {
+            case "ADMIN":
+                return  <Navigate to={`/admin/`} />;
+            default:
+                return  <Navigate to={`/contributor/"`} />;
+        }
     }
     return (
         <Guest />
@@ -18,11 +20,12 @@ export const PublicLayout = () => {
 }
 
 export const PrivateLayout = () => {
-    if (!auth.isAuthenticated()) {
+    const { getToken , getExpiration, clear} = useStore()
+    if (!getToken()) {
         return <Navigate to={"/login"} />;
     }
-    else if (auth.getExpiration() * 1000 <= Date.now()) {
-        auth.clear()
+    else if (getExpiration() * 1000 <= Date.now()) {
+        clear()
         alert("Session Expired")
         return <Navigate to={"/login"} />;
         
@@ -32,11 +35,12 @@ export const PrivateLayout = () => {
 }
 
 export const PrivatePrintLayout = () => {
-    if (!auth.isAuthenticated()) {
+    const { getToken , getExpiration, clear} = useStore()
+    if (!getToken()) {
         return <Navigate to={"/login"} />;
     }
-    else if (auth.getExpiration() * 1000 <= Date.now()) {
-        auth.clear()
+    else if (getExpiration() * 1000 <= Date.now()) {
+        clear()
         alert("Session Expired")
         return <Navigate to={"/login"} />;
         

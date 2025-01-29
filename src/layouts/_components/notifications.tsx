@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { io, Socket } from 'socket.io-client';
-import { auth } from '@/lib/services';
-import { getContriNotification, updateNotification } from '@/lib/api';
+import { updateNotification } from '@/lib/api';
+import { useStore } from "@/store/app.store"
 
 type NotificationType = {
   _id: number;
@@ -23,8 +23,9 @@ export const Notifications = () => {
     const [notifications, setNotifications] = useState<NotificationType[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [expandedNotifications, setExpandedNotifications] = useState<number[]>([]);
+    const { getToken, getUserInfo } = useStore()
     const [socket, setSocket] = useState<Socket | null>(null);
-    const token = auth.getToken();
+    const token = getToken();
     useEffect(() => {
         if (notifications) {
             setUnreadCount(notifications.filter(n => !n.isRead).length);
@@ -45,7 +46,7 @@ export const Notifications = () => {
 
     useEffect(() => {
         if (socket) {
-          socket.on(`notification-${auth.getUserInfo()._id}`, handleNotification)
+          socket.on(`notification-${getUserInfo()._id}`, handleNotification)
         }
       }, [socket])
 
@@ -103,18 +104,6 @@ export const Notifications = () => {
         if (duration.minutes) return `${duration.minutes}m ago`;
         return 'Just now';
     };
-
-    useEffect(() => {
-        const initNotifications = async () => {
-            try {
-                const { data } = await getContriNotification() as unknown as any;
-                setNotifications(data);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        void initNotifications();
-    }, []);
 
     return (
         <div className="relative">

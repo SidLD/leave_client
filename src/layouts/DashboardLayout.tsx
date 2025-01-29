@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { Home, Users, FileInput, LogOut, Menu, X, Settings2 } from 'lucide-react';
-import { auth } from "@/lib/services";
+import { Home, Users,LogOut, Menu, X} from 'lucide-react';
 import { Notifications } from './_components/notifications';
 import { Button } from "@/components/ui/button";
+import { useStore } from "@/store/app.store"
 
 export default function DashboardLayout() {
+  const {clear, getRole} = useStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate()
   const links = [
@@ -21,45 +22,9 @@ export default function DashboardLayout() {
       title: "User Management",
       roles: ['ADMIN']
     },
-    {
-      link:'/admin/data-entry',
-      icon: <FileInput size={20} />,
-      title: "Data Entry",
-      roles: ['ADMIN']
-    },
-    {
-      link:'/admin/setting',
-      icon: <Settings2 size={20} />,
-      title: "Settings",
-      roles: ['ADMIN']
-    },
-    {
-      link:'/contributor/',
-      icon: <Home size={20} />,
-      title: "Dashboard",
-      roles: ['CONTRIBUTOR']
-    },
-    {
-      link:'/contributor/data-entry',
-      icon: <FileInput size={20} />,
-      title: "Data Entry",
-      roles: ['CONTRIBUTOR']
-    },
-    {
-      link:'/contributor/setting',
-      icon: <Settings2 size={20} />,
-      title: "Settings",
-      roles: ['CONTRIBUTOR']
-    },
-    // {
-    //   link:'/admin/report',
-    //   icon: <ClipboardMinus size={20} />,
-    //   title: "Report",
-    //   roles: ['ADMIN']
-    // },
   ]
   const handleLogout = () => {
-    auth.clear()
+    clear()
     navigate('/login')
   };
 
@@ -67,10 +32,10 @@ export default function DashboardLayout() {
     setIsMenuOpen(!isMenuOpen);
     
   };
-
+  const role = getRole() ;
   const NavItems = () => (
     <>
-      {links.filter((link) => link.roles.includes(auth.getRole())).map((link, index) => {
+      {links.filter((link) => link.roles.includes(role ? role : '')).map((link, index) => {
         return <li key={index} className="mb-4 md:mb-0 md:mr-6">
         <Link to={link.link} className="flex items-center space-x-2 transition-colors hover:text-gray-300">
           {link.icon}
@@ -96,7 +61,7 @@ export default function DashboardLayout() {
               <NavItems />
             </div>
             <div className="flex items-center space-x-4">
-                {auth.getRole() == 'CONTRIBUTOR' && 
+                {getRole() == 'CONTRIBUTOR' && 
                  <div className="w-4 h-4">
                  <Notifications />
                </div>}

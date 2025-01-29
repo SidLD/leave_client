@@ -1,5 +1,6 @@
-import DashboardView from "./view"
+import { UserDashboard } from "./view"
+
 
 export const AdminDashboard = () => {
-  return <DashboardView />
+  return <UserDashboard />
 }
