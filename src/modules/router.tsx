@@ -2,14 +2,11 @@ import { createBrowserRouter, createRoutesFromElements, Navigate, Route } from "
 import { lazy, Suspense } from "react"
 import { PrivateLayout, PublicLayout } from "./module"
 
-const Home = lazy(() => import("@/pages/home").then((module) => ({ default: module.Home })))
-const Login = lazy(() => import("@/pages/login").then((module) => ({ default: module.Login })))
-const AdminDashboard = lazy(() =>
-  import("@/pages/admin/dashboard").then((module) => ({ default: module.AdminDashboard })),
-)
-// const UserManagement = lazy(() =>
-//   import("@/pages/admin/user-management").then((module) => ({ default: module.UserManagement })),
-// )
+const Home = lazy(() => import("@/pages/home/index"))
+const Login = lazy(() => import("@/pages/login/index"))
+const DashboardClient = lazy(() => import("@/pages/admin/dashboard/index"))
+const UserManagement = lazy(() => import("@/pages/admin/user-management/index"))
+const PositionManagment = lazy(() => import("@/pages/admin/position/index"))
 
 const Loading = () => <div>Loading...</div>
 
@@ -42,19 +39,28 @@ const routers = createBrowserRouter(
             index
             element={
               <Suspense fallback={<Loading />}>
-                <AdminDashboard />
+                <DashboardClient />
               </Suspense>
             }
           />
-          {/* <Route
+          <Route
             path="user-management"
             element={
               <Suspense fallback={<Loading />}>
                 <UserManagement />
               </Suspense>
             }
-          /> */}
+          />
+          <Route
+            path="position"
+            element={
+              <Suspense fallback={<Loading />}>
+                <PositionManagment />
+              </Suspense>
+            }
+          />
         </Route>
+
       </Route>
     </>,
   ),

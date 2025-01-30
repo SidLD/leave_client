@@ -20,16 +20,10 @@ export const PublicLayout = () => {
 }
 
 export const PrivateLayout = () => {
-    const { getToken , getExpiration, clear} = useStore()
-    if (!getToken()) {
+    const { getToken , getExpiration} = useStore()
+    if (!getToken() || getExpiration() * 1000 <= Date.now()) {
         return <Navigate to={"/login"} />;
-    }
-    else if (getExpiration() * 1000 <= Date.now()) {
-        clear()
-        alert("Session Expired")
-        return <Navigate to={"/login"} />;
-        
-    }else{
+    } else{
         return <DashboardLayout />
     }   
 }

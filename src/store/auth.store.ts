@@ -31,17 +31,17 @@ export const createUserSlice: StateCreator<UserSlice> = (set, get) => ({
 
   token: null,
   setToken: (str: string) => {
-    return set({ token: `Bearer ${str}` });
+    localStorage.setItem('token', `Bearer ${str}`)
   },
   getToken: () => {
-    return get().token;
+    return localStorage.getItem('token')
   },
   
   getLocalToken: () => {
     return localStorage.getItem('token');
   },
   getRole: () => {
-    const token = get().token;
+    const token = get().getToken();
     if(!token) {
       return null;
     }
@@ -77,7 +77,7 @@ export const createUserSlice: StateCreator<UserSlice> = (set, get) => ({
   },
 
   clear: () => {
-    get().setToken('')
+    localStorage.clear()
     window.location.reload();
   }
 });

@@ -1,6 +1,7 @@
 import axios from "axios";;
 import { dataHeader } from "./helper";
 import { IRegisterUser, TeacherLoginType } from "@/types/userType";
+import { IPosition } from "@/types/positionType";
 console.log(import.meta.env.VITE_API_URL)
 export const login = (data:TeacherLoginType) => {
     return new Promise((resolve, reject) => {
@@ -45,7 +46,7 @@ export const getUsers = (data:any) => {
     return new Promise((resolve, reject) => {
       axios
         .get(`${import.meta.env.VITE_API_URL}/users`, {
-            data, ...dataHeader()
+            params:data, ...dataHeader()
         })
         .then((res:any) => {
           resolve(res);
@@ -84,3 +85,24 @@ export const updateNotification = (id:string, data:any) => {
       });
   });
 };
+
+
+// Position
+export async function getPositions() {
+  return await axios.get(`${import.meta.env.VITE_API_URL}/positions`, {
+      ...dataHeader()
+  })
+}
+
+export async function updatePosition(data: IPosition) {
+  return await axios.put(`${import.meta.env.VITE_API_URL}/positions`, {
+      data, ...dataHeader()
+  })
+}
+
+export async function createPosition(data: IPosition) {
+  return await axios.put(`${import.meta.env.VITE_API_URL}/positions`, {
+      data, ...dataHeader()
+  })
+}
+

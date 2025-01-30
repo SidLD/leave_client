@@ -22,6 +22,12 @@ export default function DashboardLayout() {
       title: "User Management",
       roles: ['ADMIN']
     },
+    {
+      link:'/admin/position',
+      icon: <Users size={20} />,
+      title: "Position Management",
+      roles: ['ADMIN']
+    },
   ]
   const handleLogout = () => {
     clear()

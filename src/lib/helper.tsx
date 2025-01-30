@@ -1,8 +1,6 @@
-import { useStore } from "@/store/app.store"
 
 export const dataHeader = () => {
-    const {getToken} = useStore()
-    return { headers: { "x-access-token": getToken(), "Content-Type": "multipart/form-data" } }
+    return { headers: { "Authorization": localStorage.getItem('token'), "Content-Type": "multipart/form-data" } }
 }
 export const fetchProvincs = async (code:string) => {
     try {
