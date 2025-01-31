@@ -1,7 +1,12 @@
 
-export const dataHeader = () => {
+export const jsonDataHeader = () => {
+    return { headers: { "Authorization": localStorage.getItem('token'), "Content-Type": "application/json" } }
+}
+
+export const formDataHeader = () => {
     return { headers: { "Authorization": localStorage.getItem('token'), "Content-Type": "multipart/form-data" } }
 }
+
 export const fetchProvincs = async (code:string) => {
     try {
         const data = await fetch(`https://psgc.gitlab.io/api/provinces/${code}`)

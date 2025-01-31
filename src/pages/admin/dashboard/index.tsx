@@ -5,8 +5,6 @@ const DashboardClient = () => {
   const [start] = useState(0)
   const [limit] = useState(10)
   const [searchTerm] = useState("")
-
-  
   const fetchUser = async () => {
     try {
       const {data} = await getUsers({

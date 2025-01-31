@@ -9,7 +9,6 @@ const UserManagement = lazy(() => import("@/pages/admin/user-management/index"))
 const PositionManagment = lazy(() => import("@/pages/admin/position/index"))
 
 const Loading = () => <div>Loading...</div>
-
 const routers = createBrowserRouter(
   createRoutesFromElements(
     <>
@@ -33,9 +32,10 @@ const routers = createBrowserRouter(
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
-      <Route element={<PrivateLayout />}>
+      <Route  element={<PrivateLayout />}>
         <Route path="/admin">
           <Route
+            
             index
             element={
               <Suspense fallback={<Loading />}>
@@ -60,7 +60,6 @@ const routers = createBrowserRouter(
             }
           />
         </Route>
-
       </Route>
     </>,
   ),

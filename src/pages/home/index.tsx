@@ -1,4 +1,3 @@
-
 import { format } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -18,12 +17,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { getPositions, register } from "@/lib/api"
 import * as z from "zod"
 import { Toaster } from "@/components/ui/toaster"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useStore } from "@/store/app.store"
 import { useQuery } from "@tanstack/react-query"
-
-const teachingPositions = ["Teacher I", "Teacher II", "Teacher III", "Master Teacher"]
-const nonTeachingPositions = ["Librarian", "Guidance Counselor", "Administrative Assistant", "Maintenance Staff"]
+import type { IPosition } from "@/types/positionType"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 const teacherRegistrationSchema = z.object({
   username: z.string().min(2, {
@@ -32,10 +30,7 @@ const teacherRegistrationSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  position: z.enum(["teaching", "non-teaching"]),
-  specificPosition: z.string().min(1, {
-    message: "Please select a specific position.",
-  }),
+  position: z.string(),
   contact: z.string().min(1, {
     message: "Contact number is required.",
   }),
@@ -48,11 +43,15 @@ const teacherRegistrationSchema = z.object({
   educational_attainment: z.string().min(1, {
     message: "Educational attainment is required.",
   }),
-  file: z.any().optional()
+  file: z.any().optional(),
 })
 
 export default function TeacherRegistrationForm() {
   const { getToken } = useStore()
+
+  const [positionType, setPositionType] = useState("TEACHING")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [registrationCode, setRegistrationCode] = useState("")
   const form = useForm<z.infer<typeof teacherRegistrationSchema>>({
     resolver: zodResolver(teacherRegistrationSchema),
     defaultValues: {
@@ -60,18 +59,16 @@ export default function TeacherRegistrationForm() {
     },
   })
 
-  const { data:positions } = useQuery({
+  const { data: positions } = useQuery<IPosition[]>({
     queryKey: [`positions`],
-    queryFn: () => getPositions()
-  });
-
-  console.log(positions)
+    queryFn: () => getPositions(),
+  })
 
   const { toast } = useToast()
 
   useEffect(() => {
-    if(getToken()){
-      window.location.href = '/admin/'
+    if (getToken()) {
+      window.location.href = "/admin/"
     }
   }, [])
 
@@ -79,20 +76,24 @@ export default function TeacherRegistrationForm() {
     const phBirthday = toZonedTime(data.birthday, "Asia/Manila")
     const formattedBirthday = new Date(format(phBirthday, "yyyy-MM-dd"))
     try {
-      register({...data, birthday: formattedBirthday, role: "USER"})
-      .then((data:any) => {
-        const { code } = data.json()
-        toast({
-          title: "Registration Submitted",
-          description: `Thank you ${data.username}, your application for ${data.position} (${data.specificPosition}) position has been received. Your registration code is: ${code}`,
+      register({ ...data, birthday: formattedBirthday, role: "USER" })
+        .then(({data}: any) => {
+          console.log(data)
+          const { code } = data.user
+          setRegistrationCode(code)
+          setIsModalOpen(true)
+          toast({
+            title: "Registration Submitted",
+            description: `Thank you ${data.username}, your application has been received.`,
+          })
         })
-      }).catch((err:any) => {
-        toast({
-          title: "There was an error submitting your application. Please try again.",
-          description: `${err.response.data.message}`,
-          variant: "destructive",
+        .catch((err: any) => {
+          toast({
+            title: "There was an error submitting your application. Please try again.",
+            description: `${err.response.data.message}`,
+            variant: "destructive",
+          })
         })
-      })
     } catch {
       toast({
         title: "Error",
@@ -154,26 +155,26 @@ export default function TeacherRegistrationForm() {
                 />
 
                 <FormField
-                  control={form.control}
-                  name="position"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
                       <FormLabel className="text-green-700">Position</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={field.onChange}
+                          onValueChange={(e) => {
+                            setPositionType(e)
+                          }}
                           defaultValue={field.value}
                           className="flex space-x-4"
                         >
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="teaching" className="text-green-600" />
+                              <RadioGroupItem value="TEACHING" className="text-green-600" />
                             </FormControl>
                             <FormLabel className="font-normal text-green-700">Teaching</FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="non-teaching" className="text-green-600" />
+                              <RadioGroupItem value="NON_TEACHING" className="text-green-600" />
                             </FormControl>
                             <FormLabel className="font-normal text-green-700">Non-Teaching</FormLabel>
                           </FormItem>
@@ -182,11 +183,12 @@ export default function TeacherRegistrationForm() {
                       <FormMessage />
                     </FormItem>
                   )}
+                  name={""}
                 />
 
                 <FormField
                   control={form.control}
-                  name="specificPosition"
+                  name="position"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-green-700">Specific Position</FormLabel>
@@ -197,13 +199,13 @@ export default function TeacherRegistrationForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(form.watch("position") === "teaching" ? teachingPositions : nonTeachingPositions).map(
-                            (pos) => (
-                              <SelectItem key={pos} value={pos}>
-                                {pos}
+                          {positions
+                            ?.filter((pos) => pos.type == positionType)
+                            .map((pos) => (
+                              <SelectItem key={pos._id} value={pos._id as string}>
+                                {pos.name}
                               </SelectItem>
-                            ),
-                          )}
+                            ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -340,6 +342,19 @@ export default function TeacherRegistrationForm() {
           </p>
         </CardFooter>
       </Card>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registration Successful</DialogTitle>
+            <DialogDescription>
+              Your registration has been submitted successfully. Please keep the following code for your records:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-6 mt-4 text-center bg-green-100 rounded-lg">
+            <p className="text-2xl font-bold text-green-800">{registrationCode}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

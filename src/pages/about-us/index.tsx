@@ -9,11 +9,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { useState } from "react"
+import { IPosition } from "@/types/positionType"
+import { useQuery } from "@tanstack/react-query"
+import { getPositions } from "@/lib/api"
 
 type FormData = {
   name: string
   email: string
-  position: "teaching" | "non-teaching"
+  position: string
   specificPosition: string
   contact: string
   address: string
@@ -21,20 +25,20 @@ type FormData = {
   educationalAttainment: string
 }
 
-const teachingPositions = ["Teacher I", "Teacher II", "Teacher III", "Master Teacher"]
-const nonTeachingPositions = ["Librarian", "Guidance Counselor", "Administrative Assistant", "Maintenance Staff"]
 
 export default function Home() {
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<FormData>()
   const { toast } = useToast()
-
-  const position = watch("position")
+  const { data: positions } = useQuery<IPosition[]>({
+    queryKey: ["positions"],
+    queryFn: () => getPositions(),
+  })
+  const [positionType, setPositionType] = useState('POSITION')
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     // Convert birthday to PH timezone
@@ -55,11 +59,11 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container py-10 mx-auto">
       <Card className="w-full max-w-3xl mx-auto">
         <CardHeader>
           <CardTitle className="text-3xl font-bold text-center">Teacher Registration</CardTitle>
-          <CardDescription className="text-center text-lg">
+          <CardDescription className="text-lg text-center">
             Register for teaching and non-teaching positions
           </CardDescription>
         </CardHeader>
@@ -72,7 +76,7 @@ export default function Home() {
                 placeholder="Enter your full name"
                 {...register("name", { required: "Name is required" })}
               />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+              {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -86,18 +90,18 @@ export default function Home() {
                   pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" },
                 })}
               />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label>Position</Label>
-              <RadioGroup onValueChange={(value) => setValue("position", value as "teaching" | "non-teaching")}>
+              <RadioGroup onValueChange={(value) => setPositionType(value as string)}>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="teaching" id="teaching" />
+                  <RadioGroupItem value="TEACHING" id="teaching" />
                   <Label htmlFor="teaching">Teaching</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="non-teaching" id="non-teaching" />
+                  <RadioGroupItem value="NON_TEACHING" id="non-teaching" />
                   <Label htmlFor="non-teaching">Non-Teaching</Label>
                 </div>
               </RadioGroup>
@@ -110,15 +114,9 @@ export default function Home() {
                   <SelectValue placeholder="Select a position" />
                 </SelectTrigger>
                 <SelectContent>
-                  {position === "teaching"
-                    ? teachingPositions.map((pos) => (
-                        <SelectItem key={pos} value={pos}>
-                          {pos}
-                        </SelectItem>
-                      ))
-                    : nonTeachingPositions.map((pos) => (
-                        <SelectItem key={pos} value={pos}>
-                          {pos}
+                  {positions?.filter(pos => pos.type == positionType).map((pos) => (
+                        <SelectItem key={pos._id} value={pos._id as string}>
+                          {pos.name}
                         </SelectItem>
                       ))}
                 </SelectContent>
@@ -132,7 +130,7 @@ export default function Home() {
                 placeholder="Enter your contact number"
                 {...register("contact", { required: "Contact number is required" })}
               />
-              {errors.contact && <p className="text-red-500 text-sm">{errors.contact.message}</p>}
+              {errors.contact && <p className="text-sm text-red-500">{errors.contact.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -142,13 +140,13 @@ export default function Home() {
                 placeholder="Enter your address"
                 {...register("address", { required: "Address is required" })}
               />
-              {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
+              {errors.address && <p className="text-sm text-red-500">{errors.address.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="birthday">Birthday</Label>
               <Input id="birthday" type="date" {...register("birthday", { required: "Birthday is required" })} />
-              {errors.birthday && <p className="text-red-500 text-sm">{errors.birthday.message}</p>}
+              {errors.birthday && <p className="text-sm text-red-500">{errors.birthday.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -159,7 +157,7 @@ export default function Home() {
                 {...register("educationalAttainment", { required: "Educational attainment is required" })}
               />
               {errors.educationalAttainment && (
-                <p className="text-red-500 text-sm">{errors.educationalAttainment.message}</p>
+                <p className="text-sm text-red-500">{errors.educationalAttainment.message}</p>
               )}
             </div>
 
