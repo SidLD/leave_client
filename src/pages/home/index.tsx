@@ -17,8 +17,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { getPositions, register } from "@/lib/api"
 import * as z from "zod"
 import { Toaster } from "@/components/ui/toaster"
-import { useEffect, useState } from "react"
-import { useStore } from "@/store/app.store"
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { IPosition } from "@/types/positionType"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -47,7 +46,6 @@ const teacherRegistrationSchema = z.object({
 })
 
 export default function TeacherRegistrationForm() {
-  const { getToken } = useStore()
 
   const [positionType, setPositionType] = useState("TEACHING")
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -65,12 +63,6 @@ export default function TeacherRegistrationForm() {
   })
 
   const { toast } = useToast()
-
-  useEffect(() => {
-    if (getToken()) {
-      window.location.href = "/admin/"
-    }
-  }, [])
 
   const onSubmit = async (data: z.infer<typeof teacherRegistrationSchema>) => {
     const phBirthday = toZonedTime(data.birthday, "Asia/Manila")

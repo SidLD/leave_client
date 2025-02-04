@@ -6,7 +6,6 @@ import { useStore } from '@/store/app.store';
 import DashboardLayout from "@/layouts/DashboardLayout";
 export const PublicLayout = () => {
    const { getToken , getRole, getExpiration} = useStore()
-   console.log(getRole(), 'asdasd')
     if(getToken() && getExpiration() * 1000 > Date.now()){
         switch (getRole()) {
             case "ADMIN":
@@ -21,7 +20,7 @@ export const PublicLayout = () => {
 }
 
 export const PrivateLayout = () => {
-    const { getToken, getExpiration } = useStore()
+    const { getToken, getExpiration} = useStore()
     if(getToken() && getExpiration() * 1000 > Date.now()){
         return <DashboardLayout />
     }else{
