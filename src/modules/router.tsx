@@ -33,9 +33,8 @@ const routers = createBrowserRouter(
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
       <Route  element={<PrivateLayout />}>
-        <Route path="/admin">
+        <Route path="/dashboard">
           <Route
-            
             index
             element={
               <Suspense fallback={<Loading />}>
@@ -44,7 +43,7 @@ const routers = createBrowserRouter(
             }
           />
           <Route
-            path="user-management"
+            path="leave-setting"
             element={
               <Suspense fallback={<Loading />}>
                 <UserManagement />
@@ -52,7 +51,7 @@ const routers = createBrowserRouter(
             }
           />
           <Route
-            path="position"
+            path="reports"
             element={
               <Suspense fallback={<Loading />}>
                 <PositionManagment />

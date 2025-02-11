@@ -11,7 +11,7 @@ export const PublicLayout = () => {
             case "ADMIN":
                 return  <Navigate to={`/admin`} />;
             default:
-                return  <Navigate to={`/`} />;
+                return <Navigate to={"/admin-login"} />;
         }
     }
     return (
@@ -25,7 +25,7 @@ export const PrivateLayout = () => {
         return <DashboardLayout />
     }else{
         alert("Session Expired")
-        return <Navigate to={"/"} />;
+        return <Navigate to={"/admin-login"} />;
     }
 }
 
@@ -34,7 +34,7 @@ export const PrivatePrintLayout = () => {
     if (!getToken() || getExpiration() * 1000 <= Date.now()) {
         clear()
         alert("Session Expired")
-        return <Navigate to={"/"} />;
+        return <Navigate to={"/admin-login"} />;
         
     }else{
         return <PrintLayout />
