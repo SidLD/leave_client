@@ -1,22 +1,12 @@
 import axios from "axios";;
 import {  formDataHeader, jsonDataHeader } from "./helper";
-import { IRegisterUser, TeacherLoginType } from "@/types/userType";
-import { IPosition } from "@/types/positionType";
+import { IUser, TeacherLoginType } from "@/types/userType";
 console.log(import.meta.env.VITE_API_URL)
 export const login = (data:TeacherLoginType) => {
-    return new Promise((resolve, reject) => {
-      axios
-        .post(`${import.meta.env.VITE_API_URL}/users/login`, data)
-        .then((res:any) => {
-          resolve(res);
-        })
-        .catch((err:any) => {
-          reject(err);
-        });
-    });
+    return axios.post(`${import.meta.env.VITE_API_URL}/user-login`, data)
 };
 
-export const register = (data: IRegisterUser) => {
+export const register = (data: IUser) => {
   return new Promise((resolve, reject) => {
     axios
       .post(`${import.meta.env.VITE_API_URL}/users/register`, data, formDataHeader())
@@ -43,34 +33,16 @@ export const updateUser = (data:any) => {
 };
 
 export const getUsers = (data:any) => {
-    return new Promise((resolve, reject) => {
-      axios
-        .get(`${import.meta.env.VITE_API_URL}/users`, {
-            params:data, ...jsonDataHeader()
-        })
-        .then((res:any) => {
-          resolve(res);
-        })
-        .catch((err:any) => {
-          reject(err);
-        });
-    });
+    return axios.get(`${import.meta.env.VITE_API_URL}/users`, {
+        params:data, ...jsonDataHeader()
+    })
 };
 
 export const deleteUser = (data:any) => {
-    return new Promise((resolve, reject) => {
-      axios
-        .delete(`${import.meta.env.VITE_API_URL}/users/${data}`, {
-            data,
-            ...jsonDataHeader()
-        })
-        .then((res:any) => {
-          resolve(res);
-        })
-        .catch((err:any) => {
-          reject(err);
-        });
-    });
+    return axios.delete(`${import.meta.env.VITE_API_URL}/users/${data}`, {
+        data,
+        ...jsonDataHeader()
+    })
 };
 
 export const updateNotification = (id:string, data:any) => {
@@ -102,11 +74,11 @@ export async function getPositions() {
   })
 }
 
-export async function updatePosition(data: IPosition) {
+export async function updatePosition(data: any) {
   return await axios.put(`${import.meta.env.VITE_API_URL}/positions/${data._id}`, data, jsonDataHeader())
 }
 
-export async function createPosition(data: IPosition) {
+export async function createPosition(data: any) {
   return await axios.post(`${import.meta.env.VITE_API_URL}/positions`, data, jsonDataHeader())
 }
 

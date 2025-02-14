@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
-import { IPosition } from "@/types/positionType"
+import { IPosition } from "@/types/leaveType"
 import { useQuery } from "@tanstack/react-query"
 import { getPositions } from "@/lib/api"
 

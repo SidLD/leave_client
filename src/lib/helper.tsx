@@ -1,10 +1,10 @@
 
 export const jsonDataHeader = () => {
-    return { headers: { "Authorization": localStorage.getItem('token'), "Content-Type": "application/json" } }
+    return { headers: { "x-access-token": localStorage.getItem('token'), "Content-Type": "application/json" } }
 }
 
 export const formDataHeader = () => {
-    return { headers: { "Authorization": localStorage.getItem('token'), "Content-Type": "multipart/form-data" } }
+    return { headers: { "x-access-token": localStorage.getItem('token'), "Content-Type": "multipart/form-data" } }
 }
 
 export const fetchProvincs = async (code:string) => {

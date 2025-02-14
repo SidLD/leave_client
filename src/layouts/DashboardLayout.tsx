@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { Home, Users,LogOut, Menu, X} from 'lucide-react';
+import { Home, Users,LogOut, Menu, X, Users2, File} from 'lucide-react';
 import { Notifications } from './_components/notifications';
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/store/app.store"
@@ -24,8 +24,8 @@ export default function DashboardLayout() {
     },
     {
       link:'/admin/position',
-      icon: <Users size={20} />,
-      title: "Position Management",
+      icon: <File size={20} />,
+      title: "Report",
       roles: ['ADMIN']
     },
   ]

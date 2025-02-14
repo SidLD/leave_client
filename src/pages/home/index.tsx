@@ -19,7 +19,7 @@ import * as z from "zod"
 import { Toaster } from "@/components/ui/toaster"
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { IPosition } from "@/types/positionType"
+import type { IPosition } from "@/types/leaveType"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 const teacherRegistrationSchema = z.object({

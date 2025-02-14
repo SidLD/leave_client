@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -14,6 +12,8 @@ import { login } from "@/lib/api"
 import type { TeacherLoginType } from "@/types/userType"
 import { ClapperboardIcon as ChalkboardTeacher, Eye, EyeOff } from "lucide-react"
 import { useStore } from "@/store/app.store"
+import { useMutation } from "@tanstack/react-query"
+import { useNavigate } from "react-router-dom"
 
 const teacherLoginSchema = z.object({
   username: z.string().min(1, "Employee ID is required"),
@@ -29,19 +29,25 @@ export default function TeacherLoginView() {
   } = useForm<TeacherLoginType>({
     resolver: zodResolver(teacherLoginSchema),
   })
+  const navigate = useNavigate()
   const { setToken } = useStore()
   const { toast } = useToast()
+  const createMutation = useMutation({
+    mutationFn: login,
+    onSuccess: () => {
+      toast({ title: "Welcome User" })
+    },
+  })
   const onSubmit = async (data: TeacherLoginType) => {
     try {
-      const response = await login(data) as unknown as any
-      toast({
-        title: "Success",
-        description: "Welcome, Admin!",
-      })
-      if (response.data && response.data.token) {
-        setToken(response.data.token)
-        // Redirect to teacher dashboard or appropriate page
-        window.location.reload()
+      const response = await createMutation.mutateAsync(data)
+      if(response.status == 200){
+        const { token } = response.data;
+        console.log(token)
+        if(token){
+          setToken(token)
+          window.location.reload()
+        }
       }
     } catch (error: any) {
       console.error(error.response)

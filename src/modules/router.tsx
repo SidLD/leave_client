@@ -2,7 +2,6 @@ import { createBrowserRouter, createRoutesFromElements, Navigate, Route } from "
 import { lazy, Suspense } from "react"
 import { PrivateLayout, PublicLayout } from "./module"
 
-const Home = lazy(() => import("@/pages/home/index"))
 const Login = lazy(() => import("@/pages/login/index"))
 const DashboardClient = lazy(() => import("@/pages/admin/dashboard/index"))
 const UserManagement = lazy(() => import("@/pages/admin/user-management/index"))
@@ -14,16 +13,7 @@ const routers = createBrowserRouter(
     <>
       <Route element={<PublicLayout />}>
         <Route
-          index
           path="/"
-          element={
-            <Suspense fallback={<Loading />}>
-              <Home />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/admin-login"
           element={
             <Suspense fallback={<Loading />}>
               <Login />
@@ -33,7 +23,7 @@ const routers = createBrowserRouter(
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
       <Route  element={<PrivateLayout />}>
-        <Route path="/dashboard">
+        <Route path="/admin">
           <Route
             index
             element={
