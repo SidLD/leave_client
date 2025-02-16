@@ -10,9 +10,17 @@ interface DataTableProps {
   selectedUsers: string[]
   searchQuery: string
   onManageLeave: (user: IUser) => void
+  onBatchAddLeave: () => void
 }
 
-const DataTable: React.FC<DataTableProps> = ({ data, onSelect, selectedUsers, searchQuery, onManageLeave }) => {
+const DataTable: React.FC<DataTableProps> = ({
+  data,
+  onSelect,
+  selectedUsers,
+  searchQuery,
+  onManageLeave,
+  onBatchAddLeave,
+}) => {
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       onSelect(data.map((user) => user._id!))
@@ -84,6 +92,11 @@ const DataTable: React.FC<DataTableProps> = ({ data, onSelect, selectedUsers, se
           )}
         </TableBody>
       </Table>
+      {selectedUsers.length > 0 && (
+        <div className="p-4 bg-gray-100 dark:bg-gray-800">
+          <Button onClick={onBatchAddLeave}>Batch Add Leave for Selected Users</Button>
+        </div>
+      )}
     </div>
   )
 }
