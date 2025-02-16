@@ -1,19 +1,20 @@
 import { IUser } from "./userType"
 
 export type IUserLeave = {
+    _id: string,
     user: IUser,
-    used: Number,
-    carryOver: Number,
+    used: number,
+    carryOver: number,
     leave: ILeaveSetting
   }
   
   export type ILeaveSetting = {
-    _id: string,
+    _id?: string,
     name: string,
-    defaultCredit: Number,
-    carryOver: Boolean,
-    gender: string,
-    accrual: 'YEARLY' | 'MONTHLY' | 'QUATERLY' | 'WEEKLY'
+    defaultCredit: number,
+    carryOver: boolean,
+    gender: 'MALE' | 'FEMALE' | 'ALL',
+    accrual: 'YEARLY' | 'MONTHLY' | 'QUARTERLY' | 'WEEKLY'
   }
   
   export type ILeaveRecord = {

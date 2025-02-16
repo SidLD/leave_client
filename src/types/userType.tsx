@@ -1,4 +1,7 @@
+import { IUserLeave } from "./leaveType"
+
 export type IUser = {
+  userLeave: IUserLeave[]
   _id?: string,
   firstName: string,
   lastName: string,

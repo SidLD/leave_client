@@ -13,7 +13,6 @@ import type { TeacherLoginType } from "@/types/userType"
 import { ClapperboardIcon as ChalkboardTeacher, Eye, EyeOff } from "lucide-react"
 import { useStore } from "@/store/app.store"
 import { useMutation } from "@tanstack/react-query"
-import { useNavigate } from "react-router-dom"
 
 const teacherLoginSchema = z.object({
   username: z.string().min(1, "Employee ID is required"),
@@ -29,7 +28,6 @@ export default function TeacherLoginView() {
   } = useForm<TeacherLoginType>({
     resolver: zodResolver(teacherLoginSchema),
   })
-  const navigate = useNavigate()
   const { setToken } = useStore()
   const { toast } = useToast()
   const createMutation = useMutation({

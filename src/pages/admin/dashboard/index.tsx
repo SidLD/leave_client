@@ -6,14 +6,17 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { IUser } from "@/types/userType"
+import type { ILeaveSetting } from "@/types/leaveType"
+import type { IUserLeave } from "@/types/leaveType"
 import { CostumeModal } from "./_components/custom_modal"
-import { useQuery } from "@tanstack/react-query"
-import { getUsers } from "@/lib/api"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { getUsers, getLeaveSetting, createUserLeave, deleteUserLeave, getUserLeaves, register } from "@/lib/api"
+import DataTable from "./_components/custome-table"
+import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table"
 
 // Form schema for user registration
 const registerFormSchema = z.object({
@@ -27,6 +30,13 @@ const registerFormSchema = z.object({
 })
 
 type RegisterFormData = z.infer<typeof registerFormSchema>
+
+// Schema for user leave management
+const userLeaveSchema = z.object({
+  leaveId: z.string().min(1, "Please select a leave type"),
+})
+
+type UserLeaveFormData = z.infer<typeof userLeaveSchema>
 
 const Toolbar: React.FC<{
   onRegister: () => void
@@ -47,81 +57,6 @@ const Toolbar: React.FC<{
           </Button>
         )}
       </div>
-    </div>
-  )
-}
-
-const DataTable: React.FC<{
-  data: IUser[]
-  onSelect: (selectedIds: string[]) => void
-  selectedUsers: string[]
-  searchQuery: string
-}> = ({ data, onSelect, selectedUsers, searchQuery }) => {
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      onSelect(data.map((user) => user._id as string))
-    } else {
-      onSelect([])
-    }
-  }
-
-  const handleSelectUser = (userId: string, checked: boolean) => {
-    if (checked) {
-      onSelect([...selectedUsers, userId])
-    } else {
-      onSelect(selectedUsers.filter((id) => id !== userId))
-    }
-  }
-
-  const filteredData = data.filter((user) =>
-    Object.values(user).some((value) => value.toString().toLowerCase().includes(searchQuery.toLowerCase())),
-  )
-
-  return (
-    <div className="border rounded-md">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[50px]">
-              <Checkbox
-                checked={selectedUsers.length === filteredData.length}
-                onCheckedChange={handleSelectAll}
-                aria-label="Select all"
-              />
-            </TableHead>
-            <TableHead>First Name</TableHead>
-            <TableHead>Last Name</TableHead>
-            <TableHead>Username</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Gender</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredData.map((user) => (
-            <TableRow key={user._id}>
-              <TableCell>
-                <Checkbox
-                  checked={selectedUsers.includes(user._id as string)}
-                  onCheckedChange={(checked) => handleSelectUser(user._id as string, checked as boolean)}
-                  aria-label={`Select ${user.firstName}`}
-                />
-              </TableCell>
-              <TableCell>{user.firstName}</TableCell>
-              <TableCell>{user.lastName}</TableCell>
-              <TableCell>{user.username}</TableCell>
-              <TableCell>{user.role}</TableCell>
-              <TableCell>{user.gender}</TableCell>
-            </TableRow>
-          ))}
-          {filteredData.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
     </div>
   )
 }
@@ -203,12 +138,17 @@ const RegisterForm: React.FC<{
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <FormControl>
-                <select {...field} className="w-full p-2 border rounded">
-                  <option value="USER">User</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="USER">User</SelectItem>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -219,12 +159,17 @@ const RegisterForm: React.FC<{
           render={({ field }) => (
             <FormItem>
               <FormLabel>Gender</FormLabel>
-              <FormControl>
-                <select {...field} className="w-full p-2 border rounded">
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                </select>
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="MALE">Male</SelectItem>
+                  <SelectItem value="FEMALE">Female</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -248,12 +193,86 @@ const RegisterForm: React.FC<{
   )
 }
 
+const UserLeaveForm: React.FC<{
+  user: IUser
+  leaveSettings: ILeaveSetting[]
+  onSubmit: (data: UserLeaveFormData) => void
+  userLeaves: IUserLeave[]
+  onDeleteLeave: (leaveId: string) => void
+}> = ({ leaveSettings, onSubmit, userLeaves, onDeleteLeave }) => {
+  const form = useForm<UserLeaveFormData>({
+    resolver: zodResolver(userLeaveSchema),
+    defaultValues: {
+      leaveId: "",
+    },
+  })
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="leaveId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Leave Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select leave type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {leaveSettings.map((leave) => (
+                    <SelectItem key={leave._id} value={leave._id!}>
+                      {leave.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Add Leave</Button>
+      </form>
+      <div className="mt-4">
+        <h3 className="mb-2 text-lg font-semibold">Current Leaves</h3>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Leave Type</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {userLeaves.map((userLeave) => (
+              <TableRow key={userLeave._id}>
+                <TableCell>{userLeave.leave.name}</TableCell>
+                <TableCell>
+                  <Button variant="destructive" size="sm" onClick={() => onDeleteLeave(userLeave._id!)}>
+                    Remove
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </Form>
+  )
+}
+
 export default function Dashboard() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [start, setStart] = useState(0)
   const [limit, _setLimit] = useState(10)
+
+  const queryClient = useQueryClient()
 
   const {
     data: users,
@@ -261,19 +280,52 @@ export default function Dashboard() {
     isLoading,
   } = useQuery<IUser[]>({
     queryKey: ["users", searchQuery, start, limit],
-    queryFn: () => getUsers({ searchItem: searchQuery, start, limit }).then((data) => data.data),
+    queryFn: () => getUsers({ searchItem: searchQuery, start, limit }).then((res) => res.data),
+  })
+
+  const { data: leaveSettings } = useQuery<ILeaveSetting[]>({
+    queryKey: ["leaveSettings"],
+    queryFn: () => getLeaveSetting({}).then((res) => res.data),
+  })
+
+  const { data: userLeaves } = useQuery<IUserLeave[]>({
+    queryKey: ["userLeaves", selectedUser?._id],
+    queryFn: () => getUserLeaves({ userId: selectedUser?._id }).then((res) => res.data),
+    enabled: !!selectedUser,
+  })
+
+  const createUserLeaveMutation = useMutation({
+    mutationFn: (data: { userId: string } & UserLeaveFormData) => createUserLeave(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["userLeaves", selectedUser?._id]})
+    },
+  })
+
+  const deleteUserLeaveMutation = useMutation({
+    mutationFn: (leaveId: string) => deleteUserLeave(leaveId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["userLeaves", selectedUser?._id]})
+    },
   })
 
   useEffect(() => {
     refetch()
   }, [refetch])
 
-  const handleRegister = (_newUser: RegisterFormData) => {
-    // Implement user registration logic here
-    // After successful registration, refetch the users
-    refetch()
-    setIsModalOpen(false)
-  }
+  const createUser = useMutation({
+    mutationKey: ['createUser'],
+    mutationFn: (data: IUser) => register(data), 
+  });
+  
+  const handleRegister = async (_newUser: RegisterFormData) => {
+    try {
+      await createUser.mutateAsync(_newUser as IUser); 
+      refetch();
+      setIsRegisterModalOpen(false);
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
+  };
 
   const handleDelete = () => {
     // Implement user deletion logic here
@@ -287,10 +339,25 @@ export default function Dashboard() {
     setStart(0) // Reset pagination when searching
   }
 
+  const handleLeaveSubmit = (data: UserLeaveFormData) => {
+    if (selectedUser) {
+      createUserLeaveMutation.mutate({ userId: selectedUser._id!, ...data })
+    }
+  }
+
+  const handleDeleteLeave = (leaveId: string) => {
+    deleteUserLeaveMutation.mutate(leaveId)
+  }
+
+  const handleManageLeave = (user: IUser) => {
+    setSelectedUser(user)
+    setIsLeaveModalOpen(true)
+  }
+
   return (
     <div className="container py-10 mx-auto">
       <Toolbar
-        onRegister={() => setIsModalOpen(true)}
+        onRegister={() => setIsRegisterModalOpen(true)}
         onDelete={handleDelete}
         selectedCount={selectedUsers.length}
         onSearch={handleSearch}
@@ -303,6 +370,7 @@ export default function Dashboard() {
           onSelect={setSelectedUsers}
           selectedUsers={selectedUsers}
           searchQuery={searchQuery}
+          onManageLeave={handleManageLeave}
         />
       )}
       <div className="flex justify-between mt-4">
@@ -313,8 +381,19 @@ export default function Dashboard() {
           Next
         </Button>
       </div>
-      <CostumeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register User">
+      <CostumeModal isOpen={isRegisterModalOpen} onClose={() => setIsRegisterModalOpen(false)} title="Register User">
         <RegisterForm onSubmit={handleRegister} />
+      </CostumeModal>
+      <CostumeModal isOpen={isLeaveModalOpen} onClose={() => setIsLeaveModalOpen(false)} title="Manage User Leave">
+        {selectedUser && leaveSettings && userLeaves && (
+          <UserLeaveForm
+            user={selectedUser}
+            leaveSettings={leaveSettings}
+            onSubmit={handleLeaveSubmit}
+            userLeaves={userLeaves}
+            onDeleteLeave={handleDeleteLeave}
+          />
+        )}
       </CostumeModal>
     </div>
   )
