@@ -16,9 +16,10 @@ interface UserLeaveRecordProps {
   leaveSettings: ILeaveSetting[]
   onClose: () => void
   onAddLeaveRecord: () => void
+  onManageLeave: () => void
 }
 
-const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({ user, leaveSettings, onClose, onAddLeaveRecord }) => {
+const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({ user, leaveSettings, onClose, onAddLeaveRecord, onManageLeave }) => {
   const [selectedUserLeave, setSelectedUserLeave] = useState<IUserLeave | null>(null)
   const queryClient = useQueryClient()
   const { toast } = useToast()

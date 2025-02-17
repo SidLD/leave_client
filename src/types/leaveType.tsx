@@ -14,8 +14,7 @@ export type IUserLeave = {
     name: string,
     defaultCredit: number,
     carryOver: boolean,
-    gender: 'MALE' | 'FEMALE' | 'ALL',
-    accrual: 'YEARLY' | 'MONTHLY' | 'QUARTERLY' | 'WEEKLY'
+    gender: 'MALE' | 'FEMALE' | 'ALL'
   }
   
   export type ILeaveRecord = {

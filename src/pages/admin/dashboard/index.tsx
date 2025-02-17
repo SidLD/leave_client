@@ -496,7 +496,7 @@ export default function Dashboard() {
   })
 
   const updateUserLeaveMutation = useMutation({
-    mutationFn: (data: { userLeaveId: string; credit: number }) => updateUserLeave(selectedUserLeave?._id!,data),
+    mutationFn: (data: { leaveId: string; credit: number }) => updateUserLeave(selectedUserLeave?._id!,data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
       setIsManageLeaveModalOpen(false)
@@ -583,13 +583,13 @@ export default function Dashboard() {
 
   const handleAddUserLeave = (data: UserLeaveFormData) => {
     if (selectedUser) {
-      createUserLeaveMutation.mutate({ userId: selectedUser._id, ...data })
+      createUserLeaveMutation.mutate({ ...data, userId: selectedUser._id as string } as any)
     }
   }
 
   const handleUpdateUserLeave = (data: UserLeaveFormData) => {
     if (selectedUserLeave) {
-      updateUserLeaveMutation.mutate({ userLeaveId: selectedUserLeave?._id!, ...data })
+      updateUserLeaveMutation.mutate({...data , leaveId: selectedUserLeave?._id!} as any)
     }
   }
 
