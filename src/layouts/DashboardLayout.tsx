@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { Home,LogOut, Menu, X, File, Settings2} from 'lucide-react';
+import { Home,LogOut, Menu, X, File, Settings2, LucideAlignVerticalJustifyCenter} from 'lucide-react';
 import { Notifications } from './_components/notifications';
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/store/app.store"

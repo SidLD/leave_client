@@ -1,4 +1,4 @@
-import type React from "react"
+import React from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ interface DataTableProps {
   selectedUsers: string[]
   searchQuery: string
   onManageLeave: (user: IUser) => void
+  onManageRecord: (user: IUser) => void
   onBatchAddLeave: () => void
 }
 
@@ -18,7 +19,7 @@ const DataTable: React.FC<DataTableProps> = ({
   onSelect,
   selectedUsers,
   searchQuery,
-  onManageLeave,
+  onManageRecord,
   onBatchAddLeave,
 }) => {
   const handleSelectAll = (checked: boolean) => {
@@ -43,6 +44,11 @@ const DataTable: React.FC<DataTableProps> = ({
 
   return (
     <div className="border rounded-md">
+      {selectedUsers.length > 0 && (
+        <div className="p-4 bg-gray-100 dark:bg-gray-800">
+          <Button onClick={onBatchAddLeave}>Batch Add Leave for Selected Users</Button>
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
@@ -77,8 +83,8 @@ const DataTable: React.FC<DataTableProps> = ({
               <TableCell>{user.role}</TableCell>
               <TableCell>{user.gender}</TableCell>
               <TableCell>
-                <Button onClick={() => onManageLeave(user)} variant="outline" size="sm">
-                  Manage Leave
+                <Button onClick={() => onManageRecord(user)} variant="outline" size="sm">
+                  Manage Record
                 </Button>
               </TableCell>
             </TableRow>
@@ -92,14 +98,8 @@ const DataTable: React.FC<DataTableProps> = ({
           )}
         </TableBody>
       </Table>
-      {selectedUsers.length > 0 && (
-        <div className="p-4 bg-gray-100 dark:bg-gray-800">
-          <Button onClick={onBatchAddLeave}>Batch Add Leave for Selected Users</Button>
-        </div>
-      )}
     </div>
   )
 }
 
 export default DataTable
-

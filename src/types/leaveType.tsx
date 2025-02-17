@@ -5,6 +5,7 @@ export type IUserLeave = {
     user: IUser,
     used: number,
     carryOver: number,
+    credit:number,
     leave: ILeaveSetting
   }
   
@@ -22,6 +23,8 @@ export type IUserLeave = {
     userLeave: IUserLeave,
     dateStart: Date,
     dateEnd: Date,
-    credit: Number
+    credit: number
     leave: ILeaveSetting  // Dont Update this
   }
+
+

@@ -69,14 +69,9 @@ export async function deleteLeaveSetting(id:string) {
   return await axios.delete(`${import.meta.env.VITE_API_URL}/leave-setting/${id}`, { ...jsonDataHeader()})
 }
 
-
-//User Leave
 // User Leave Management
 export const getUserLeaves = (data: any) => {
-  return axios.get(`${import.meta.env.VITE_API_URL}/user-leaves`, {
-    params: data,
-    ...jsonDataHeader(),
-  });
+  return axios.get(`${import.meta.env.VITE_API_URL}/user-leaves`, { params: data, ...jsonDataHeader()});
 };
 
 export const createUserLeave = (data: any) => {
@@ -92,9 +87,40 @@ export const deleteUserLeave = (id: string) => {
 };
 
 export const batchCreateUserLeave = (data: any) => {
-  return axios.post(`${import.meta.env.VITE_API_URL}/user-leaves/batch-create`, data, jsonDataHeader());
+  return axios.post(`${import.meta.env.VITE_API_URL}/user-leave/batch`, data, jsonDataHeader());
 };
 
 export const batchUpdateUserLeave = (data: any) => {
-  return axios.put(`${import.meta.env.VITE_API_URL}/user-leaves/batch-update`, data, jsonDataHeader());
+  return axios.put(`${import.meta.env.VITE_API_URL}/user-leave/batch`, data, jsonDataHeader());
+};
+
+
+// Fetch Leave Records
+export const getLeaveRecords = (userId: string, data: any) => {
+  return axios.get(`${import.meta.env.VITE_API_URL}/leave-records/${userId}`, { params: data, ...jsonDataHeader() });
+};
+
+// Create a Leave Record
+export const createLeaveRecord = (userId: string, data: any) => {
+  return axios.post(`${import.meta.env.VITE_API_URL}/leave-record/${userId}`, data, jsonDataHeader());
+};
+
+// Update a Leave Record
+export const updateLeaveRecord = (leaveId: string, data: any) => {
+  return axios.put(`${import.meta.env.VITE_API_URL}/leave-record/${leaveId}`, data, jsonDataHeader());
+};
+
+// Delete a Leave Record
+export const deleteLeaveRecord = (leaveId:string) => {
+  return axios.delete(`${import.meta.env.VITE_API_URL}/leave-record/${leaveId}`, { ...jsonDataHeader() });
+};
+
+// Batch Create Leave Records
+export const batchCreateLeaveRecord = (data: any) => {
+  return axios.post(`${import.meta.env.VITE_API_URL}/leave-record/batch`, data, jsonDataHeader());
+};
+
+// Batch Update Leave Records
+export const batchUpdateLeaveRecord = (data: any) => {
+  return axios.put(`${import.meta.env.VITE_API_URL}/leave-record/batch`, data, jsonDataHeader());
 };

@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -9,21 +8,16 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table"
 import type { IUser } from "@/types/userType"
-import type { ILeaveSetting } from "@/types/leaveType"
-import type { IUserLeave } from "@/types/leaveType"
+import type { ILeaveSetting, IUserLeave } from "@/types/leaveType"
 import { CostumeModal } from "./_components/custom_modal"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import {
-  getUsers,
-  getLeaveSetting,
-  createUserLeave,
-  deleteUserLeave,
-  getUserLeaves,
-  batchCreateUserLeave,
-} from "@/lib/api"
+import { getUsers, getLeaveSetting, getUserLeaves, batchCreateUserLeave, createLeaveRecord, createUserLeave, updateUserLeave, deleteUserLeave } from "@/lib/api"
 import DataTable from "./_components/custome-table"
+import { Toaster } from "@/components/ui/toaster"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
+import UserLeaveRecord from "./_components/user_leave_record"
+import { useToast } from "@/hooks/use-toast"
 
 // Form schema for user registration
 const registerFormSchema = z.object({
@@ -41,6 +35,7 @@ type RegisterFormData = z.infer<typeof registerFormSchema>
 // Schema for user leave management
 const userLeaveSchema = z.object({
   leaveId: z.string().min(1, "Please select a leave type"),
+  credit: z.number().min(0, "Credit must be a positive number").optional(),
 })
 
 type UserLeaveFormData = z.infer<typeof userLeaveSchema>
@@ -51,6 +46,16 @@ const batchLeaveSchema = z.object({
 })
 
 type BatchLeaveFormData = z.infer<typeof batchLeaveSchema>
+
+// Schema for leave record
+const leaveRecordSchema = z.object({
+  userLeaveId: z.string().min(1, "Please select a user leave"),
+  dateStart: z.string().min(1, "Please select a start date"),
+  dateEnd: z.string().min(1, "Please select an end date"),
+  credit: z.number().min(0, "Credit must be a positive number"),
+})
+
+type LeaveRecordFormData = z.infer<typeof leaveRecordSchema>
 
 const Toolbar: React.FC<{
   onRegister: () => void
@@ -207,76 +212,6 @@ const RegisterForm: React.FC<{
   )
 }
 
-const UserLeaveForm: React.FC<{
-  user: IUser
-  leaveSettings: ILeaveSetting[]
-  onSubmit: (data: UserLeaveFormData) => void
-  userLeaves: IUserLeave[]
-  onDeleteLeave: (leaveId: string) => void
-}> = ({ user, leaveSettings, onSubmit, userLeaves, onDeleteLeave }) => {
-  const form = useForm<UserLeaveFormData>({
-    resolver: zodResolver(userLeaveSchema),
-    defaultValues: {
-      leaveId: "",
-    },
-  })
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="leaveId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Leave Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select leave type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {leaveSettings.map((leave) => (
-                    <SelectItem key={leave._id} value={leave._id!}>
-                      {leave.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Add Leave</Button>
-      </form>
-      <div className="mt-4">
-        <h3 className="mb-2 text-lg font-semibold">Current Leaves</h3>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Leave Type</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {userLeaves.map((userLeave) => (
-              <TableRow key={userLeave._id}>
-                <TableCell>{userLeave.leave.name}</TableCell>
-                <TableCell>
-                  <Button variant="destructive" size="sm" onClick={() => onDeleteLeave(userLeave._id)}>
-                    Remove
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </Form>
-  )
-}
-
 const BatchLeaveForm: React.FC<{
   leaveSettings: ILeaveSetting[]
   onSubmit: (data: BatchLeaveFormData) => void
@@ -321,17 +256,167 @@ const BatchLeaveForm: React.FC<{
   )
 }
 
+const LeaveRecordForm: React.FC<{
+  userLeaves: IUserLeave[]
+  onSubmit: (data: LeaveRecordFormData) => void
+}> = ({ userLeaves, onSubmit }) => {
+  const form = useForm<LeaveRecordFormData>({
+    resolver: zodResolver(leaveRecordSchema),
+    defaultValues: {
+      userLeaveId: "",
+      dateStart: "",
+      dateEnd: "",
+      credit: 0,
+    },
+  })
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="userLeaveId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>User Leave</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select user leave" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {userLeaves.map((userLeave) => (
+                    <SelectItem key={userLeave._id} value={userLeave._id}>
+                      {`${userLeave.leave.name}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="dateStart"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Start Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="dateEnd"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>End Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="credit"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Credit</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Create Leave Record</Button>
+      </form>
+    </Form>
+  )
+}
+
+const UserLeaveForm: React.FC<{
+  leaveSettings: ILeaveSetting[]
+  onSubmit: (data: UserLeaveFormData) => void
+  initialData: IUserLeave | null
+}> = ({ leaveSettings, onSubmit, initialData }) => {
+  const form = useForm<UserLeaveFormData>({
+    resolver: zodResolver(userLeaveSchema),
+    defaultValues: {
+      leaveId: initialData?.leave?._id || "",
+      credit: initialData?.credit || 0,
+    },
+  })
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="leaveId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Leave Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select leave type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {leaveSettings.map((leave) => (
+                    <SelectItem key={leave._id} value={leave._id!}>
+                      {leave.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="credit"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Credit</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">{initialData ? "Update" : "Add"} Leave</Button>
+      </form>
+    </Form>
+  )
+}
+
+
 export default function Dashboard() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
-  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false)
   const [isBatchLeaveModalOpen, setIsBatchLeaveModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [start, setStart] = useState(0)
   const [limit, _setLimit] = useState(10)
+  const [isRecordSheetOpen, setIsRecordSheetOpen] = useState(false)
+  const [isAddLeaveRecordModalOpen, setIsAddLeaveRecordModalOpen] = useState(false)
+  const [isManageLeaveModalOpen, setIsManageLeaveModalOpen] = useState(false)
+  const [selectedUserLeave, setSelectedUserLeave] = useState<IUserLeave | null>(null)
 
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   const {
     data: users,
@@ -347,31 +432,103 @@ export default function Dashboard() {
     queryFn: () => getLeaveSetting({}).then((res) => res.data),
   })
 
-  const { data: userLeaves } = useQuery<IUserLeave[]>({
+  const { data: userLeaves, isLoading: userLeavesLoading } = useQuery<IUserLeave[]>({
     queryKey: ["userLeaves", selectedUser?._id],
     queryFn: () => getUserLeaves({ userId: selectedUser?._id }).then((res) => res.data),
     enabled: !!selectedUser,
   })
 
-  const createUserLeaveMutation = useMutation({
-    mutationFn: (data: { userId: string } & UserLeaveFormData) => createUserLeave(data),
+  const batchCreateUserLeaveMutation = useMutation({
+    mutationFn: (data: { userIds: string[]; leaveId: string }) => batchCreateUserLeave(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["userLeaves", selectedUser?._id]})
+      queryClient.invalidateQueries({ queryKey: ["users"] })
+      setIsBatchLeaveModalOpen(false)
+      toast({
+        title: "Batch leave added successfully",
+        description: "Leaves have been added to the selected users.",
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error adding batch leave",
+        description: error.message || "An error occurred while adding batch leaves.",
+        variant: "destructive",
+      })
+    },
+  })
+
+  const createLeaveRecordMutation = useMutation({
+    mutationFn: (data: LeaveRecordFormData) => createLeaveRecord(selectedUser!._id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userLeaveRecords", selectedUser?._id] })
+      setIsAddLeaveRecordModalOpen(false)
+      toast({
+        title: "Leave record created successfully",
+        description: "The leave record has been added.",
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error creating leave record",
+        description: error.message || "An error occurred while creating the leave record.",
+        variant: "destructive",
+      })
+    },
+  })
+
+  const createUserLeaveMutation = useMutation({
+    mutationFn: (data: { userId: string; leaveId: string; credit: number }) => createUserLeave(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
+      setIsManageLeaveModalOpen(false)
+      toast({
+        title: "Leave added successfully",
+        description: "The user's leave has been added.",
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error adding leave",
+        description: error.message || "An error occurred while adding the leave.",
+        variant: "destructive",
+      })
+    },
+  })
+
+  const updateUserLeaveMutation = useMutation({
+    mutationFn: (data: { userLeaveId: string; credit: number }) => updateUserLeave(selectedUserLeave?._id!,data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
+      setIsManageLeaveModalOpen(false)
+      toast({
+        title: "Leave updated successfully",
+        description: "The user's leave has been updated.",
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating leave",
+        description: error.message || "An error occurred while updating the leave.",
+        variant: "destructive",
+      })
     },
   })
 
   const deleteUserLeaveMutation = useMutation({
     mutationFn: (leaveId: string) => deleteUserLeave(leaveId),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["userLeaves", selectedUser?._id]})
+      queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
+      toast({
+        title: "Leave deleted successfully",
+        description: "The user's leave has been removed.",
+      })
     },
-  })
-
-  const batchCreateUserLeaveMutation = useMutation({
-    mutationFn: (data: { userIds: string[]; leaveId: string }) => batchCreateUserLeave(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["users"]})
-      setIsBatchLeaveModalOpen(false)
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting leave",
+        description: error.message || "An error occurred while deleting the leave.",
+        variant: "destructive",
+      })
     },
   })
 
@@ -398,21 +555,6 @@ export default function Dashboard() {
     setStart(0) // Reset pagination when searching
   }
 
-  const handleLeaveSubmit = (data: UserLeaveFormData) => {
-    if (selectedUser) {
-      createUserLeaveMutation.mutate({ userId: selectedUser._id!, ...data })
-    }
-  }
-
-  const handleDeleteLeave = (leaveId: string) => {
-    deleteUserLeaveMutation.mutate(leaveId)
-  }
-
-  const handleManageLeave = (user: IUser) => {
-    setSelectedUser(user)
-    setIsLeaveModalOpen(true)
-  }
-
   const handleBatchAddLeave = () => {
     setIsBatchLeaveModalOpen(true)
   }
@@ -421,8 +563,43 @@ export default function Dashboard() {
     batchCreateUserLeaveMutation.mutate({ userIds: selectedUsers, leaveId: data.leaveId })
   }
 
+  const handleManageRecord = (user: IUser) => {
+    setSelectedUser(user)
+    setIsRecordSheetOpen(true)
+  }
+
+  const handleAddLeaveRecord = () => {
+    setIsAddLeaveRecordModalOpen(true)
+  }
+
+  const handleLeaveRecordSubmit = (data: LeaveRecordFormData) => {
+    createLeaveRecordMutation.mutate(data)
+  }
+
+  const handleManageLeave = (user: IUser) => {
+    setSelectedUser(user)
+    setIsManageLeaveModalOpen(true)
+  }
+
+  const handleAddUserLeave = (data: UserLeaveFormData) => {
+    if (selectedUser) {
+      createUserLeaveMutation.mutate({ userId: selectedUser._id, ...data })
+    }
+  }
+
+  const handleUpdateUserLeave = (data: UserLeaveFormData) => {
+    if (selectedUserLeave) {
+      updateUserLeaveMutation.mutate({ userLeaveId: selectedUserLeave?._id!, ...data })
+    }
+  }
+
+  const handleDeleteUserLeave = (leaveId: string) => {
+    deleteUserLeaveMutation.mutate(leaveId)
+  }
+
   return (
     <div className="container py-10 mx-auto">
+      <Toaster />
       <Toolbar
         onRegister={() => setIsRegisterModalOpen(true)}
         onDelete={handleDelete}
@@ -438,6 +615,7 @@ export default function Dashboard() {
           selectedUsers={selectedUsers}
           searchQuery={searchQuery}
           onManageLeave={handleManageLeave}
+          onManageRecord={handleManageRecord}
           onBatchAddLeave={handleBatchAddLeave}
         />
       )}
@@ -452,17 +630,6 @@ export default function Dashboard() {
       <CostumeModal isOpen={isRegisterModalOpen} onClose={() => setIsRegisterModalOpen(false)} title="Register User">
         <RegisterForm onSubmit={handleRegister} />
       </CostumeModal>
-      <CostumeModal isOpen={isLeaveModalOpen} onClose={() => setIsLeaveModalOpen(false)} title="Manage User Leave">
-        {selectedUser && leaveSettings && userLeaves && (
-          <UserLeaveForm
-            user={selectedUser}
-            leaveSettings={leaveSettings}
-            onSubmit={handleLeaveSubmit}
-            userLeaves={userLeaves}
-            onDeleteLeave={handleDeleteLeave}
-          />
-        )}
-      </CostumeModal>
       <CostumeModal
         isOpen={isBatchLeaveModalOpen}
         onClose={() => setIsBatchLeaveModalOpen(false)}
@@ -470,7 +637,39 @@ export default function Dashboard() {
       >
         {leaveSettings && <BatchLeaveForm leaveSettings={leaveSettings} onSubmit={handleBatchLeaveSubmit} />}
       </CostumeModal>
+      <Sheet open={isRecordSheetOpen} onOpenChange={setIsRecordSheetOpen}>
+        <SheetContent side="left" className="w-[400px] sm:w-[640px]">
+          {selectedUser && leaveSettings && (
+            <UserLeaveRecord
+              user={selectedUser}
+              leaveSettings={leaveSettings}
+              onClose={() => setIsRecordSheetOpen(false)}
+              onAddLeaveRecord={handleAddLeaveRecord}
+              onManageLeave={() => setIsManageLeaveModalOpen(true)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
+      <CostumeModal
+        isOpen={isAddLeaveRecordModalOpen}
+        onClose={() => setIsAddLeaveRecordModalOpen(false)}
+        title="Add Leave Record"
+      >
+        {userLeaves && <LeaveRecordForm userLeaves={userLeaves} onSubmit={handleLeaveRecordSubmit} />}
+      </CostumeModal>
+      <CostumeModal
+        isOpen={isManageLeaveModalOpen}
+        onClose={() => setIsManageLeaveModalOpen(false)}
+        title={selectedUserLeave ? "Update User Leave" : "Add User Leave"}
+      >
+        {leaveSettings && (
+          <UserLeaveForm
+            leaveSettings={leaveSettings}
+            onSubmit={selectedUserLeave ? handleUpdateUserLeave : handleAddUserLeave}
+            initialData={selectedUserLeave}
+          />
+        )}
+      </CostumeModal>
     </div>
   )
 }
-
