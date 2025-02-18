@@ -11,6 +11,8 @@ import type { ILeaveSetting, IUserLeave } from "@/types/leaveType"
 const userLeaveSchema = z.object({
   leaveId: z.string().min(1, "Please select a leave type"),
   credit: z.number().min(0, "Credit must be a positive number"),
+  carryOver: z.number().min(0, "Credit must be a positive number"),
+  used: z.number().min(0, "Credit must be a positive number"),
 })
 
 type UserLeaveFormData = z.infer<typeof userLeaveSchema>
@@ -27,6 +29,8 @@ const UserLeaveForm: React.FC<UserLeaveFormProps> = ({ leaveSettings, onSubmit, 
     defaultValues: {
       leaveId: initialData?.leave._id || "",
       credit: initialData?.credit || 0,
+      carryOver: initialData?.carryOver || 0,
+      used: initialData?.used || 0
     },
   })
 
@@ -38,7 +42,8 @@ const UserLeaveForm: React.FC<UserLeaveFormProps> = ({ leaveSettings, onSubmit, 
           name="leaveId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Leave Type</FormLabel>
+              <FormLabel>Leave Type <br/> <span className="text-red-500">Note 1Day = 8 Credits, Half Day = 4 Credits</span></FormLabel>
+              
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -63,6 +68,32 @@ const UserLeaveForm: React.FC<UserLeaveFormProps> = ({ leaveSettings, onSubmit, 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Credit</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="carryOver"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Carry Over</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="used"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Used</FormLabel>
               <FormControl>
                 <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
               </FormControl>

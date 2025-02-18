@@ -12,7 +12,7 @@ import type { IUser } from "@/types/userType"
 import type { ILeaveSetting, IUserLeave } from "@/types/leaveType"
 import { CostumeModal } from "./_components/custom_modal"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getUsers, getLeaveSetting, getUserLeaves, batchCreateUserLeave, createLeaveRecord, createUserLeave, updateUserLeave, deleteUserLeave } from "@/lib/api"
+import { getUsers, getLeaveSetting, getUserLeaves, batchCreateUserLeave, createLeaveRecord, createUserLeave } from "@/lib/api"
 import DataTable from "./_components/custome-table"
 import { Toaster } from "@/components/ui/toaster"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
@@ -35,7 +35,8 @@ type RegisterFormData = z.infer<typeof registerFormSchema>
 // Schema for user leave management
 const userLeaveSchema = z.object({
   leaveId: z.string().min(1, "Please select a leave type"),
-  credit: z.number().min(0, "Credit must be a positive number").optional(),
+  carryOver: z.number().min(0, "Carry Over must be a positive number").optional(),
+  used: z.number().min(0, "Used must be a positive number").optional(),
 })
 
 type UserLeaveFormData = z.infer<typeof userLeaveSchema>
@@ -46,16 +47,6 @@ const batchLeaveSchema = z.object({
 })
 
 type BatchLeaveFormData = z.infer<typeof batchLeaveSchema>
-
-// Schema for leave record
-const leaveRecordSchema = z.object({
-  userLeaveId: z.string().min(1, "Please select a user leave"),
-  dateStart: z.string().min(1, "Please select a start date"),
-  dateEnd: z.string().min(1, "Please select an end date"),
-  credit: z.number().min(0, "Credit must be a positive number"),
-})
-
-type LeaveRecordFormData = z.infer<typeof leaveRecordSchema>
 
 const Toolbar: React.FC<{
   onRegister: () => void
@@ -255,18 +246,26 @@ const BatchLeaveForm: React.FC<{
     </Form>
   )
 }
+const leaveRecordSchema = z.object({
+  userLeaveId: z.string().min(1, "Please select a user leave"),
+  dateStart: z.string().min(1, "Please select a start date"),
+  dateEnd: z.string().min(1, "Please select an end date"),
+  leaveType: z.enum(["WHOLE_DAY", "HALF_DAY_MORNING", "HALF_DAY_AFTERNOON"]),
+})
 
-const LeaveRecordForm: React.FC<{
+type LeaveRecordFormData = z.infer<typeof leaveRecordSchema>
+interface LeaveRecordFormProps {
   userLeaves: IUserLeave[]
   onSubmit: (data: LeaveRecordFormData) => void
-}> = ({ userLeaves, onSubmit }) => {
+}
+const LeaveRecordForm: React.FC<LeaveRecordFormProps> = ({ userLeaves, onSubmit }) => {
   const form = useForm<LeaveRecordFormData>({
     resolver: zodResolver(leaveRecordSchema),
     defaultValues: {
       userLeaveId: "",
       dateStart: "",
       dateEnd: "",
-      credit: 0,
+      leaveType: "WHOLE_DAY",
     },
   })
 
@@ -287,7 +286,7 @@ const LeaveRecordForm: React.FC<{
                 </FormControl>
                 <SelectContent>
                   {userLeaves.map((userLeave) => (
-                    <SelectItem key={userLeave._id} value={userLeave._id}>
+                    <SelectItem key={userLeave._id} value={userLeave._id!}>
                       {`${userLeave.leave.name}`}
                     </SelectItem>
                   ))}
@@ -325,13 +324,22 @@ const LeaveRecordForm: React.FC<{
         />
         <FormField
           control={form.control}
-          name="credit"
+          name="leaveType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Credit</FormLabel>
-              <FormControl>
-                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
-              </FormControl>
+              <FormLabel>Leave Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select leave type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="WHOLE_DAY">Whole Day</SelectItem>
+                  <SelectItem value="HALF_DAY_MORNING">Half Day (Morning)</SelectItem>
+                  <SelectItem value="HALF_DAY_AFTERNOON">Half Day (Afternoon)</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -342,6 +350,7 @@ const LeaveRecordForm: React.FC<{
   )
 }
 
+
 const UserLeaveForm: React.FC<{
   leaveSettings: ILeaveSetting[]
   onSubmit: (data: UserLeaveFormData) => void
@@ -351,7 +360,6 @@ const UserLeaveForm: React.FC<{
     resolver: zodResolver(userLeaveSchema),
     defaultValues: {
       leaveId: initialData?.leave?._id || "",
-      credit: initialData?.credit || 0,
     },
   })
 
@@ -382,12 +390,25 @@ const UserLeaveForm: React.FC<{
             </FormItem>
           )}
         />
-        <FormField
+         <FormField
           control={form.control}
-          name="credit"
+          name="used"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Credit</FormLabel>
+              <FormLabel>Used (8 Credit = 1 Day)</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+         <FormField
+          control={form.control}
+          name="carryOver"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Carry Over (8 Credit = 1 Day)</FormLabel>
               <FormControl>
                 <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
               </FormControl>
@@ -413,7 +434,7 @@ export default function Dashboard() {
   const [isRecordSheetOpen, setIsRecordSheetOpen] = useState(false)
   const [isAddLeaveRecordModalOpen, setIsAddLeaveRecordModalOpen] = useState(false)
   const [isManageLeaveModalOpen, setIsManageLeaveModalOpen] = useState(false)
-  const [selectedUserLeave, setSelectedUserLeave] = useState<IUserLeave | null>(null)
+  const [selectedUserLeave, _setSelectedUserLeave] = useState<IUserLeave | null>(null)
 
   const queryClient = useQueryClient()
   const { toast } = useToast()
@@ -432,7 +453,7 @@ export default function Dashboard() {
     queryFn: () => getLeaveSetting({}).then((res) => res.data),
   })
 
-  const { data: userLeaves, isLoading: userLeavesLoading } = useQuery<IUserLeave[]>({
+  const { data: userLeaves } = useQuery<IUserLeave[]>({
     queryKey: ["userLeaves", selectedUser?._id],
     queryFn: () => getUserLeaves({ userId: selectedUser?._id }).then((res) => res.data),
     enabled: !!selectedUser,
@@ -477,7 +498,7 @@ export default function Dashboard() {
   })
 
   const createUserLeaveMutation = useMutation({
-    mutationFn: (data: { userId: string; leaveId: string; credit: number }) => createUserLeave(data),
+    mutationFn: (data: { userId: string; leaveId: string; carryOver: number, used:number }) => createUserLeave(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
       setIsManageLeaveModalOpen(false)
@@ -495,42 +516,7 @@ export default function Dashboard() {
     },
   })
 
-  const updateUserLeaveMutation = useMutation({
-    mutationFn: (data: { leaveId: string; credit: number }) => updateUserLeave(selectedUserLeave?._id!,data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
-      setIsManageLeaveModalOpen(false)
-      toast({
-        title: "Leave updated successfully",
-        description: "The user's leave has been updated.",
-      })
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error updating leave",
-        description: error.message || "An error occurred while updating the leave.",
-        variant: "destructive",
-      })
-    },
-  })
 
-  const deleteUserLeaveMutation = useMutation({
-    mutationFn: (leaveId: string) => deleteUserLeave(leaveId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
-      toast({
-        title: "Leave deleted successfully",
-        description: "The user's leave has been removed.",
-      })
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error deleting leave",
-        description: error.message || "An error occurred while deleting the leave.",
-        variant: "destructive",
-      })
-    },
-  })
 
   useEffect(() => {
     refetch()
@@ -587,16 +573,6 @@ export default function Dashboard() {
     }
   }
 
-  const handleUpdateUserLeave = (data: UserLeaveFormData) => {
-    if (selectedUserLeave) {
-      updateUserLeaveMutation.mutate({...data , leaveId: selectedUserLeave?._id!} as any)
-    }
-  }
-
-  const handleDeleteUserLeave = (leaveId: string) => {
-    deleteUserLeaveMutation.mutate(leaveId)
-  }
-
   return (
     <div className="container py-10 mx-auto">
       <Toaster />
@@ -645,7 +621,6 @@ export default function Dashboard() {
               leaveSettings={leaveSettings}
               onClose={() => setIsRecordSheetOpen(false)}
               onAddLeaveRecord={handleAddLeaveRecord}
-              onManageLeave={() => setIsManageLeaveModalOpen(true)}
             />
           )}
         </SheetContent>
@@ -665,7 +640,7 @@ export default function Dashboard() {
         {leaveSettings && (
           <UserLeaveForm
             leaveSettings={leaveSettings}
-            onSubmit={selectedUserLeave ? handleUpdateUserLeave : handleAddUserLeave}
+            onSubmit={handleAddUserLeave}
             initialData={selectedUserLeave}
           />
         )}

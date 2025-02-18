@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table"
 import { SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
-import type {  ILeaveSetting, IUserLeave, ILeaveRecord } from "@/types/leaveType"
+import type { ILeaveSetting, IUserLeave, ILeaveRecord } from "@/types/leaveType"
 import { getUserLeaves, updateUserLeave, deleteUserLeave, getLeaveRecords } from "@/lib/api"
 import LeaveRecordTable from "./leave_record_table"
 import UserLeaveForm from "./user_leave_form"
-import { IUser } from "@/types/userType"
+import type { IUser } from "@/types/userType"
 import { useToast } from "@/hooks/use-toast"
 
 interface UserLeaveRecordProps {
@@ -16,10 +16,14 @@ interface UserLeaveRecordProps {
   leaveSettings: ILeaveSetting[]
   onClose: () => void
   onAddLeaveRecord: () => void
-  onManageLeave: () => void
 }
 
-const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({ user, leaveSettings, onClose, onAddLeaveRecord, onManageLeave }) => {
+const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({
+  user,
+  leaveSettings,
+  onClose,
+  onAddLeaveRecord,
+}) => {
   const [selectedUserLeave, setSelectedUserLeave] = useState<IUserLeave | null>(null)
   const queryClient = useQueryClient()
   const { toast } = useToast()
@@ -35,7 +39,8 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({ user, leaveSettings, 
   })
 
   const updateUserLeaveMutation = useMutation({
-    mutationFn: (data: { userLeaveId: string; credit: number }) => updateUserLeave(selectedUserLeave?._id!,data),
+    mutationFn: (data: { userLeaveId: string; credit: number; carryOver: number; used: number }) =>
+      updateUserLeave(selectedUserLeave?._id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userLeaves", user._id] })
       toast({
@@ -71,9 +76,14 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({ user, leaveSettings, 
     },
   })
 
-  const handleUpdateUserLeave = (data: { leaveId: string; credit: number }) => {
+  const handleUpdateUserLeave = (data: { leaveId: string; credit: number; carryOver: number; used: number }) => {
     if (selectedUserLeave) {
-      updateUserLeaveMutation.mutate({ userLeaveId: selectedUserLeave._id, credit: data.credit })
+      updateUserLeaveMutation.mutate({
+        userLeaveId: selectedUserLeave._id,
+        credit: data.credit,
+        carryOver: data.carryOver,
+        used: data.used,
+      })
     }
   }
 
@@ -108,9 +118,9 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({ user, leaveSettings, 
               {userLeaves?.map((userLeave) => (
                 <TableRow key={userLeave._id}>
                   <TableCell>{userLeave.leave.name}</TableCell>
-                  <TableCell>{userLeave.credit}</TableCell>
-                  <TableCell>{userLeave.used}</TableCell>
-                  <TableCell>{userLeave.carryOver}</TableCell>
+                  <TableCell>{userLeave.credit / 8}</TableCell>
+                  <TableCell>{userLeave.used / 8}</TableCell>
+                  <TableCell>{userLeave.carryOver / 8}</TableCell>
                   <TableCell>
                     <Button
                       variant="outline"
@@ -120,7 +130,7 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({ user, leaveSettings, 
                     >
                       Edit
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteUserLeave(userLeave._id)}>
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteUserLeave(userLeave._id!)}>
                       Delete
                     </Button>
                   </TableCell>

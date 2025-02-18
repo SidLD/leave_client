@@ -102,17 +102,17 @@ export const getLeaveRecords = (userId: string, data: any) => {
 
 // Create a Leave Record
 export const createLeaveRecord = (userId: string, data: any) => {
-  return axios.post(`${import.meta.env.VITE_API_URL}/leave-record/${userId}`, data, jsonDataHeader());
+  return axios.post(`${import.meta.env.VITE_API_URL}/leave-records/${userId}`, data, jsonDataHeader());
 };
 
 // Update a Leave Record
 export const updateLeaveRecord = (leaveId: string, data: any) => {
-  return axios.put(`${import.meta.env.VITE_API_URL}/leave-record/${leaveId}`, data, jsonDataHeader());
+  return axios.put(`${import.meta.env.VITE_API_URL}/leave-records/${leaveId}`, data, jsonDataHeader());
 };
 
 // Delete a Leave Record
 export const deleteLeaveRecord = (leaveId:string) => {
-  return axios.delete(`${import.meta.env.VITE_API_URL}/leave-record/${leaveId}`, { ...jsonDataHeader() });
+  return axios.delete(`${import.meta.env.VITE_API_URL}/leave-records/${leaveId}`, { ...jsonDataHeader() });
 };
 
 // Batch Create Leave Records

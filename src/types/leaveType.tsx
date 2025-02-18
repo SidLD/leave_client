@@ -14,7 +14,8 @@ export type IUserLeave = {
     name: string,
     defaultCredit: number,
     carryOver: boolean,
-    gender: 'MALE' | 'FEMALE' | 'ALL'
+    gender: 'MALE' | 'FEMALE' | 'ALL',
+    accrual: "YEARLY" |  "MONTHLY" | "WEEKLY"| "QUARTERLY"
   }
   
   export type ILeaveRecord = {
@@ -22,8 +23,10 @@ export type IUserLeave = {
     userLeave: IUserLeave,
     dateStart: Date,
     dateEnd: Date,
-    credit: number
-    leave: ILeaveSetting  // Dont Update this
-  }
+    credit: number,
+    isProcess: boolean,
+    leaveType: 'WHOLE_DAY' | 'HALF_DAY_MORNING' | 'HALF_DAY_AFTERNOON',
+    leave: ILeaveSetting 
+}
 
 

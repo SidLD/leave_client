@@ -192,7 +192,7 @@ const Leave: React.FC = () => {
                   name="defaultCredit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Default Credit</FormLabel>
+                      <FormLabel>Default Credit (days)</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} onChange={(e) => field.onChange(+e.target.value)} />
                       </FormControl>
@@ -246,7 +246,7 @@ const Leave: React.FC = () => {
                 <TableHead className="w-[200px]">Name</TableHead>
                 <TableHead>Accrual</TableHead>
                 <TableHead>Gender</TableHead>
-                <TableHead className="text-right">Default Credit</TableHead>
+                <TableHead className="text-right">Default Credit (Days)</TableHead>
                 <TableHead className="text-center">Carry Over</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -261,7 +261,7 @@ const Leave: React.FC = () => {
                   <TableCell>
                     <Badge className={`${getGenderColor(leave.gender)}`}>{leave.gender}</Badge>
                   </TableCell>
-                  <TableCell className="text-right">{leave.defaultCredit}</TableCell>
+                  <TableCell className="text-right">{leave.defaultCredit/8}</TableCell>
                   <TableCell className="text-center">
                     {leave.carryOver ? (
                       <Check className="inline-block w-5 h-5 text-green-500" />
