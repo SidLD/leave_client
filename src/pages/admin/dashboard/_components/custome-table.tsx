@@ -79,11 +79,12 @@ const DataTable: React.FC<DataTableProps> = ({
               <TableCell>{user.role}</TableCell>
               <TableCell>{user.gender}</TableCell>
               <TableCell>
-                <Button onClick={() => onManageLeave(user)} variant="outline" size="sm">
-                  Manage Leave
+                <Button onClick={() => onManageLeave(user)} variant="secondary" size="sm">
+                  Avail Leave
                 </Button>
+                <span className="mx-2"></span>
                 <Button onClick={() => onManageRecord(user)} variant="outline" size="sm">
-                  Manage Leave
+                  Manage Leave Record
                 </Button>
               </TableCell>
             </TableRow>

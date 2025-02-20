@@ -28,7 +28,7 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
-  const { data: userLeaves, isLoading: userLeavesLoading } = useQuery<IUserLeave[]>({
+  const { data: userLeaves, isLoading: userLeavesLoading, refetch } = useQuery<IUserLeave[]>({
     queryKey: ["userLeaves", user._id],
     queryFn: () => getUserLeaves({ userId: user._id }).then((res) => res.data),
   })
@@ -84,6 +84,7 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({
         carryOver: data.carryOver,
         used: data.used,
       })
+      refetch()
     }
   }
 

@@ -68,7 +68,7 @@ const Leave: React.FC = () => {
   useEffect(() => {
     const selectedLeave = getSelectedLeave()
     if (selectedLeave) {
-      form.reset(selectedLeave)
+      form.reset({...selectedLeave, defaultCredit: selectedLeave.defaultCredit / 8})
     } else {
       form.reset({
         accrual: "YEARLY",

@@ -12,7 +12,7 @@ import type { IUser } from "@/types/userType"
 import type { ILeaveSetting, IUserLeave } from "@/types/leaveType"
 import { CostumeModal } from "./_components/custom_modal"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getUsers, getLeaveSetting, getUserLeaves, batchCreateUserLeave, createLeaveRecord, createUserLeave } from "@/lib/api"
+import { getUsers, getLeaveSetting, getUserLeaves, batchCreateUserLeave, createLeaveRecord, createUserLeave, register } from "@/lib/api"
 import DataTable from "./_components/custome-table"
 import { Toaster } from "@/components/ui/toaster"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
@@ -24,10 +24,7 @@ const registerFormSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
   lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
   middleName: z.string().optional(),
-  username: z.string().min(3, { message: "Username must be at least 3 characters." }),
-  role: z.enum(["USER", "ADMIN"]),
   gender: z.enum(["MALE", "FEMALE"]),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 })
 
 type RegisterFormData = z.infer<typeof registerFormSchema>
@@ -80,10 +77,7 @@ const RegisterForm: React.FC<{
       firstName: "",
       lastName: "",
       middleName: "",
-      username: "",
-      role: "USER",
       gender: "MALE",
-      password: "",
     },
   })
 
@@ -131,40 +125,6 @@ const RegisterForm: React.FC<{
         />
         <FormField
           control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="johndoe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="USER">User</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="gender"
           render={({ field }) => (
             <FormItem>
@@ -180,19 +140,6 @@ const RegisterForm: React.FC<{
                   <SelectItem value="FEMALE">Female</SelectItem>
                 </SelectContent>
               </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="******" {...field} />
-              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -422,7 +369,6 @@ const UserLeaveForm: React.FC<{
   )
 }
 
-
 export default function Dashboard() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
@@ -516,16 +462,38 @@ export default function Dashboard() {
     },
   })
 
-
+  const createUser = useMutation({
+    mutationFn: (data: IUser) => register(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users", selectedUser?._id] })
+      setIsManageLeaveModalOpen(false)
+      toast({
+        title: "User added successfully",
+        description: "The user has been added.",
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error adding User",
+        description: error.message || "An error occurred while adding the User.",
+        variant: "destructive",
+      })
+    },
+  })
 
   useEffect(() => {
     refetch()
   }, [refetch])
 
   const handleRegister = (_newUser: RegisterFormData) => {
-    // Implement user registration logic here
-    // After successful registration, refetch the users
-    refetch()
+    createUser.mutate({ 
+        role: 'USER', 
+        firstName: _newUser.firstName, 
+        lastName: _newUser.lastName, 
+        middleName: _newUser.middleName,
+        username: _newUser.firstName,
+        gender: _newUser.gender  
+    } as IUser)
     setIsRegisterModalOpen(false)
   }
 
