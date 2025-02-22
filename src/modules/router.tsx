@@ -5,6 +5,7 @@ import { PrivateLayout, PublicLayout } from "./module"
 const Login = lazy(() => import("@/pages/login/index"))
 const DashboardClient = lazy(() => import("@/pages/admin/dashboard/index"))
 const LeaveSettingManagement = lazy(() => import("@/pages/admin/leave/index"))
+const Report = lazy(() => import("@/pages/admin/report/index"))
 
 const Loading = () => <div>Loading...</div>
 const routers = createBrowserRouter(
@@ -40,10 +41,10 @@ const routers = createBrowserRouter(
             }
           />
           <Route
-            path="reports"
+            path="report/:userId"
             element={
               <Suspense fallback={<Loading />}>
-                <LeaveSettingManagement />
+                <Report />
               </Suspense>
             }
           />

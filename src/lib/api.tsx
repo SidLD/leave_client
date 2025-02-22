@@ -124,3 +124,9 @@ export const batchCreateLeaveRecord = (data: any) => {
 export const batchUpdateLeaveRecord = (data: any) => {
   return axios.put(`${import.meta.env.VITE_API_URL}/leave-record/batch`, data, jsonDataHeader());
 };
+
+
+// Report Management
+export const getUserLeavesReport = (data: any) => {
+  return axios.get(`${import.meta.env.VITE_API_URL}/user-leaves/report`, { params: data, ...jsonDataHeader()});
+};

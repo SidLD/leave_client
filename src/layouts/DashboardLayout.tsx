@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { Home,LogOut, Menu, X, File, Settings2} from 'lucide-react';
+import { Home,LogOut, Menu, X, Settings2} from 'lucide-react';
 import { Notifications } from './_components/notifications';
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/store/app.store"
@@ -20,12 +20,6 @@ export default function DashboardLayout() {
       link:'/admin/leave-setting',
       icon: <Settings2 size={20} />,
       title: "Leave Management",
-      roles: ['ADMIN']
-    },
-    {
-      link:'/admin/position',
-      icon: <File size={20} />,
-      title: "Report",
       roles: ['ADMIN']
     },
   ]

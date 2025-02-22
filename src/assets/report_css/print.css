@@ -1,0 +1,43 @@
+@layer components {
+    .table-header-cell {
+      @apply h-12 px-2 py-1 font-medium text-center bg-muted/50 whitespace-nowrap;
+    }
+  
+    .table-cell {
+      @apply p-2 text-center border-b border-x whitespace-nowrap;
+    }
+  }
+  
+  @media print {
+    @page {
+      size: landscape;
+      margin: 1cm;
+    }
+  
+    body * {
+      visibility: hidden;
+    }
+  
+    .print\:p-4,
+    .print\:p-4 * {
+      visibility: visible;
+    }
+  
+    .print\:p-4 {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+  
+    button {
+      display: none !important;
+    }
+  
+    .table-header-cell,
+    .table-cell {
+      border: 1px solid #000;
+    }
+  }
+  
+  

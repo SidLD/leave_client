@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import type { IUser } from "@/types/userType"
+import { useNavigate } from "react-router-dom"
 
 interface DataTableProps {
   data: IUser[]
@@ -23,6 +24,7 @@ const DataTable: React.FC<DataTableProps> = ({
   onBatchAddLeave,
   onManageRecord
 }) => {
+  const navigate = useNavigate()
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       onSelect(data.map((user) => user._id!))
@@ -85,6 +87,11 @@ const DataTable: React.FC<DataTableProps> = ({
                 <span className="mx-2"></span>
                 <Button onClick={() => onManageRecord(user)} variant="outline" size="sm">
                   Manage Leave Record
+                </Button>
+                <Button variant='ghost' onClick={() => {
+                  navigate(`/admin/report/${user._id}`)
+                }}>
+                  View Report
                 </Button>
               </TableCell>
             </TableRow>
