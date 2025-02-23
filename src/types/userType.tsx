@@ -9,7 +9,8 @@ export type IUser = {
   username:string,
   role: 'USER' |  'ADMIN',
   gender: 'MALE' | 'FEMALE',
-  password?: string
+  password?: string,
+  firstDayOfService: Date
   
 }
 

@@ -31,7 +31,7 @@ export const getUsers = (data:any) => {
 };
 
 export const deleteUser = (data:any) => {
-    return axios.delete(`${import.meta.env.VITE_API_URL}/users/${data}`, {
+    return axios.delete(`${import.meta.env.VITE_API_URL}/users/`, {
         data,
         ...jsonDataHeader()
     })

@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import type React from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -12,12 +13,26 @@ import type { IUser } from "@/types/userType"
 import type { ILeaveSetting, IUserLeave } from "@/types/leaveType"
 import { CostumeModal } from "./_components/custom_modal"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getUsers, getLeaveSetting, getUserLeaves, batchCreateUserLeave, createLeaveRecord, createUserLeave, register } from "@/lib/api"
+import {
+  getUsers,
+  getLeaveSetting,
+  getUserLeaves,
+  batchCreateUserLeave,
+  createLeaveRecord,
+  createUserLeave,
+  register,
+  deleteUser,
+} from "@/lib/api"
 import DataTable from "./_components/custome-table"
 import { Toaster } from "@/components/ui/toaster"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import UserLeaveRecord from "./_components/user_leave_record"
 import { useToast } from "@/hooks/use-toast"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { CalendarIcon } from "lucide-react"
+import { format } from "date-fns"
+import { Calendar } from "@/components/ui/calendar"
 
 // Form schema for user registration
 const registerFormSchema = z.object({
@@ -25,6 +40,7 @@ const registerFormSchema = z.object({
   lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
   middleName: z.string().optional(),
   gender: z.enum(["MALE", "FEMALE"]),
+  firstDayOfService: z.date(),
 })
 
 type RegisterFormData = z.infer<typeof registerFormSchema>
@@ -78,6 +94,7 @@ const RegisterForm: React.FC<{
       lastName: "",
       middleName: "",
       gender: "MALE",
+      firstDayOfService: new Date(),
     },
   })
 
@@ -119,6 +136,38 @@ const RegisterForm: React.FC<{
               <FormControl>
                 <Input placeholder="Middle Name" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="firstDayOfService"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>First Day of Service</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                    >
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
@@ -195,8 +244,8 @@ const BatchLeaveForm: React.FC<{
 }
 const leaveRecordSchema = z.object({
   userLeaveId: z.string().min(1, "Please select a user leave"),
-  dateStart: z.string().min(1, "Please select a start date"),
-  dateEnd: z.string().min(1, "Please select an end date"),
+  dateStart: z.date(),
+  dateEnd: z.date(),
   leaveType: z.enum(["WHOLE_DAY", "HALF_DAY_MORNING", "HALF_DAY_AFTERNOON"]),
 })
 
@@ -205,13 +254,14 @@ interface LeaveRecordFormProps {
   userLeaves: IUserLeave[]
   onSubmit: (data: LeaveRecordFormData) => void
 }
+
 const LeaveRecordForm: React.FC<LeaveRecordFormProps> = ({ userLeaves, onSubmit }) => {
   const form = useForm<LeaveRecordFormData>({
     resolver: zodResolver(leaveRecordSchema),
     defaultValues: {
       userLeaveId: "",
-      dateStart: "",
-      dateEnd: "",
+      dateStart: new Date(),
+      dateEnd: new Date(),
       leaveType: "WHOLE_DAY",
     },
   })
@@ -247,11 +297,29 @@ const LeaveRecordForm: React.FC<LeaveRecordFormProps> = ({ userLeaves, onSubmit 
           control={form.control}
           name="dateStart"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>Start Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                    >
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    onSelect={field.onChange}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
@@ -260,11 +328,29 @@ const LeaveRecordForm: React.FC<LeaveRecordFormProps> = ({ userLeaves, onSubmit 
           control={form.control}
           name="dateEnd"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>End Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                    >
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    onSelect={field.onChange}
+                    disabled={(date) => date < new Date(form.getValues("dateStart")) || date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
@@ -296,7 +382,6 @@ const LeaveRecordForm: React.FC<LeaveRecordFormProps> = ({ userLeaves, onSubmit 
     </Form>
   )
 }
-
 
 const UserLeaveForm: React.FC<{
   leaveSettings: ILeaveSetting[]
@@ -337,7 +422,7 @@ const UserLeaveForm: React.FC<{
             </FormItem>
           )}
         />
-         <FormField
+        <FormField
           control={form.control}
           name="used"
           render={({ field }) => (
@@ -350,7 +435,7 @@ const UserLeaveForm: React.FC<{
             </FormItem>
           )}
         />
-         <FormField
+        <FormField
           control={form.control}
           name="carryOver"
           render={({ field }) => (
@@ -437,14 +522,14 @@ export default function Dashboard() {
     onError: (error: any) => {
       toast({
         title: "Error creating leave record",
-        description: error.message || "An error occurred while creating the leave record.",
+        description: error.response.data.message || "An error occurred while creating the leave record.",
         variant: "destructive",
       })
     },
   })
 
   const createUserLeaveMutation = useMutation({
-    mutationFn: (data: { userId: string; leaveId: string; carryOver: number, used:number }) => createUserLeave(data),
+    mutationFn: (data: { userId: string; leaveId: string; carryOver: number; used: number }) => createUserLeave(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userLeaves", selectedUser?._id] })
       setIsManageLeaveModalOpen(false)
@@ -456,7 +541,7 @@ export default function Dashboard() {
     onError: (error: any) => {
       toast({
         title: "Error adding leave",
-        description: error.message || "An error occurred while adding the leave.",
+        description: error.response.data.message || "An error occurred while adding the leave.",
         variant: "destructive",
       })
     },
@@ -465,7 +550,7 @@ export default function Dashboard() {
   const createUser = useMutation({
     mutationFn: (data: IUser) => register(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users", selectedUser?._id] })
+      queryClient.invalidateQueries({ queryKey: ["users"] })
       setIsManageLeaveModalOpen(false)
       toast({
         title: "User added successfully",
@@ -475,7 +560,7 @@ export default function Dashboard() {
     onError: (error: any) => {
       toast({
         title: "Error adding User",
-        description: error.message || "An error occurred while adding the User.",
+        description: error.response.data.message || "An error occurred while adding the User.",
         variant: "destructive",
       })
     },
@@ -486,20 +571,29 @@ export default function Dashboard() {
   }, [refetch])
 
   const handleRegister = (_newUser: RegisterFormData) => {
-    createUser.mutate({ 
-        role: 'USER', 
-        firstName: _newUser.firstName, 
-        lastName: _newUser.lastName, 
-        middleName: _newUser.middleName,
-        username: _newUser.firstName,
-        gender: _newUser.gender  
+    createUser.mutate({
+      role: "USER",
+      firstName: _newUser.firstName,
+      lastName: _newUser.lastName,
+      middleName: _newUser.middleName,
+      username: _newUser.firstName,
+      gender: _newUser.gender,
+      firstDayOfService: _newUser.firstDayOfService,
     } as IUser)
     setIsRegisterModalOpen(false)
   }
 
+  const deleteUserMutation = useMutation({
+    mutationKey: ["userDelete"],
+    mutationFn: (data: any) => deleteUser(data).then((data) => data.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] })
+    }
+  
+  })
+
   const handleDelete = () => {
-    // Implement user deletion logic here
-    // After successful deletion, refetch the users
+    deleteUserMutation.mutate(selectedUsers)
     refetch()
     setSelectedUsers([])
   }
@@ -581,14 +675,16 @@ export default function Dashboard() {
       >
         {leaveSettings && <BatchLeaveForm leaveSettings={leaveSettings} onSubmit={handleBatchLeaveSubmit} />}
       </CostumeModal>
+      {/* Update the UserLeaveRecord component usage in the Sheet */}
       <Sheet open={isRecordSheetOpen} onOpenChange={setIsRecordSheetOpen}>
-        <SheetContent side="left" className="w-[400px] sm:w-[640px]">
+        <SheetContent side="right" className="w-[400px] sm:w-[640px]">
           {selectedUser && leaveSettings && (
             <UserLeaveRecord
               user={selectedUser}
               leaveSettings={leaveSettings}
               onClose={() => setIsRecordSheetOpen(false)}
               onAddLeaveRecord={handleAddLeaveRecord}
+              isOpen={isRecordSheetOpen} // Add this line
             />
           )}
         </SheetContent>
@@ -606,13 +702,10 @@ export default function Dashboard() {
         title={selectedUserLeave ? "Update User Leave" : "Add User Leave"}
       >
         {leaveSettings && (
-          <UserLeaveForm
-            leaveSettings={leaveSettings}
-            onSubmit={handleAddUserLeave}
-            initialData={selectedUserLeave}
-          />
+          <UserLeaveForm leaveSettings={leaveSettings} onSubmit={handleAddUserLeave} initialData={selectedUserLeave} />
         )}
       </CostumeModal>
     </div>
   )
 }
+

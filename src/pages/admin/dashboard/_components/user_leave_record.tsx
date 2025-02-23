@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table"
-import { SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import type { ILeaveSetting, IUserLeave, ILeaveRecord } from "@/types/leaveType"
 import { getUserLeaves, updateUserLeave, deleteUserLeave, getLeaveRecords } from "@/lib/api"
 import LeaveRecordTable from "./leave_record_table"
@@ -16,6 +16,7 @@ interface UserLeaveRecordProps {
   leaveSettings: ILeaveSetting[]
   onClose: () => void
   onAddLeaveRecord: () => void
+  isOpen: boolean
 }
 
 const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({
@@ -23,12 +24,17 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({
   leaveSettings,
   onClose,
   onAddLeaveRecord,
+  isOpen,
 }) => {
   const [selectedUserLeave, setSelectedUserLeave] = useState<IUserLeave | null>(null)
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
-  const { data: userLeaves, isLoading: userLeavesLoading, refetch } = useQuery<IUserLeave[]>({
+  const {
+    data: userLeaves,
+    isLoading: userLeavesLoading,
+    refetch,
+  } = useQuery<IUserLeave[]>({
     queryKey: ["userLeaves", user._id],
     queryFn: () => getUserLeaves({ userId: user._id }).then((res) => res.data),
   })
@@ -93,75 +99,89 @@ const UserLeaveRecord: React.FC<UserLeaveRecordProps> = ({
   }
 
   return (
-    <>
-      <SheetHeader>
-        <SheetTitle>User Leave Management</SheetTitle>
-        <SheetDescription>
-          Manage leave records for {user.firstName} {user.lastName}
-        </SheetDescription>
-      </SheetHeader>
-      <div className="py-4">
-        <h3 className="mb-2 text-lg font-semibold">User Leaves</h3>
-        {userLeavesLoading ? (
-          <div>Loading user leaves...</div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Leave Type</TableHead>
-                <TableHead>Credit</TableHead>
-                <TableHead>Used</TableHead>
-                <TableHead>Carry Over</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {userLeaves?.map((userLeave) => (
-                <TableRow key={userLeave._id}>
-                  <TableCell>{userLeave.leave.name}</TableCell>
-                  <TableCell>{userLeave.credit / 8}</TableCell>
-                  <TableCell>{userLeave.used / 8}</TableCell>
-                  <TableCell>{userLeave.carryOver / 8}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedUserLeave(userLeave)}
-                      className="mr-2"
-                    >
-                      Edit
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteUserLeave(userLeave._id!)}>
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-      {selectedUserLeave && (
-        <div className="py-4">
-          <h3 className="mb-2 text-lg font-semibold">Update User Leave</h3>
-          <UserLeaveForm
-            leaveSettings={leaveSettings}
-            onSubmit={handleUpdateUserLeave}
-            initialData={selectedUserLeave}
-          />
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="right" className="w-[400px] sm:w-[540px] md:w-[720px] lg:w-[920px]">
+        <SheetHeader>
+          <SheetTitle>User Leave Management</SheetTitle>
+          <SheetDescription>
+            Manage leave records for {user.firstName} {user.lastName}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex flex-col h-[calc(100vh-120px)] mt-6">
+          <div className="flex-grow px-4 overflow-y-auto">
+            <div className="space-y-6">
+              <div>
+                <h3 className="mb-2 text-lg font-semibold">User Leaves</h3>
+                {userLeavesLoading ? (
+                  <div>Loading user leaves...</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Leave Type</TableHead>
+                          <TableHead>Credit</TableHead>
+                          <TableHead>Used</TableHead>
+                          <TableHead>Carry Over</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userLeaves?.map((userLeave) => (
+                          <TableRow key={userLeave._id}>
+                            <TableCell>{userLeave.leave.name}</TableCell>
+                            <TableCell>{userLeave.credit / 8}</TableCell>
+                            <TableCell>{userLeave.used / 8}</TableCell>
+                            <TableCell>{userLeave.carryOver / 8}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedUserLeave(userLeave)}
+                                className="mr-2"
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteUserLeave(userLeave._id!)}
+                              >
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+              {selectedUserLeave && (
+                <div>
+                  <h3 className="mb-2 text-lg font-semibold">Update User Leave</h3>
+                  <UserLeaveForm
+                    leaveSettings={leaveSettings}
+                    onSubmit={handleUpdateUserLeave}
+                    initialData={selectedUserLeave}
+                  />
+                </div>
+              )}
+              <div>
+                <h3 className="mb-2 text-lg font-semibold">Leave Records</h3>
+                <Button onClick={onAddLeaveRecord} className="mb-4">
+                  Add Leave Record
+                </Button>
+                <LeaveRecordTable data={userLeaveRecords || []} isLoading={isLeaveRecordsLoading} />
+              </div>
+            </div>
+          </div>
+          <SheetFooter className="mt-4">
+            <Button onClick={onClose}>Close</Button>
+          </SheetFooter>
         </div>
-      )}
-      <div className="py-4">
-        <h3 className="mb-2 text-lg font-semibold">Leave Records</h3>
-        <Button onClick={onAddLeaveRecord} className="mb-4">
-          Add Leave Record
-        </Button>
-        <LeaveRecordTable data={userLeaveRecords || []} isLoading={isLeaveRecordsLoading} />
-      </div>
-      <SheetFooter>
-        <Button onClick={onClose}>Close</Button>
-      </SheetFooter>
-    </>
+      </SheetContent>
+    </Sheet>
   )
 }
 
