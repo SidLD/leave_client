@@ -2,6 +2,7 @@ import axios from "axios";;
 import { jsonDataHeader } from "./helper";
 import { IUser, TeacherLoginType } from "@/types/userType";
 import { ILeaveSetting } from "@/types/leaveType";
+import { UserRegisterFormData } from "@/pages/user/register";
 console.log(import.meta.env.VITE_API_URL)
 export const login = (data:TeacherLoginType) => {
     return axios.post(`${import.meta.env.VITE_API_URL}/user-login`, data)
@@ -9,6 +10,10 @@ export const login = (data:TeacherLoginType) => {
 
 export const register = (data: IUser) => {
   return  axios.post(`${import.meta.env.VITE_API_URL}/user-register`, data, jsonDataHeader())
+};
+
+export const registerUser = (data: UserRegisterFormData) => {
+  return  axios.post(`${import.meta.env.VITE_API_URL}/register`, data, jsonDataHeader())
 };
 
 export const updateUser = (data:any) => {

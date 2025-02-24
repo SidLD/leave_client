@@ -10,8 +10,10 @@ export const PublicLayout = () => {
         switch (getRole()) {
             case "ADMIN":
                 return  <Navigate to={`/admin`} />;
+            case "USER":
+                return  <Navigate to={`/user`} />;
             default:
-                return <Navigate to={"/admin-login"} />;
+                return <Navigate to={"/user/login"} />;
         }
     }
     return (
