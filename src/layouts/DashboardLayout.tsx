@@ -17,10 +17,22 @@ export default function DashboardLayout() {
       roles: ['ADMIN']
     },
     {
-      link:'/admin/leave-setting',
+      link:'/admin/form-seven',
       icon: <Settings2 size={20} />,
-      title: "Leave Management",
+      title: "Form 7",
       roles: ['ADMIN']
+    },
+    {
+      link:'/user/',
+      icon: <Home size={20} />,
+      title: "Dashboard",
+      roles: ['USER']
+    },
+    {
+      link:'/user/report',
+      icon: <Settings2 size={20} />,
+      title: "Form 6",
+      roles: ['USER']
     },
   ]
   const handleLogout = () => {

@@ -116,7 +116,7 @@ export default function LoginPage() {
       <div className="mt-4 text-center">
         Don't have an account?{" "}
         <Button onClick={() => {
-            router('/user/register')
+            router('/register')
         }} className="text-blue-600 hover:underline">
           Register here
         </Button>

@@ -1,7 +1,6 @@
 import axios from "axios";;
 import { jsonDataHeader } from "./helper";
 import { IUser, TeacherLoginType } from "@/types/userType";
-import { ILeaveSetting } from "@/types/leaveType";
 import { UserRegisterFormData } from "@/pages/user/register";
 console.log(import.meta.env.VITE_API_URL)
 export const login = (data:TeacherLoginType) => {
@@ -54,25 +53,6 @@ export const updateNotification = (id:string, data:any) => {
       });
   });
 };
-
-
-// Position
-export const getLeaveSetting = (data:any) => {
-  return axios.get(`${import.meta.env.VITE_API_URL}/leave-settings`, {
-      params:data, ...jsonDataHeader()
-  })
-};
-export async function updateLeaveSetting(id:string,data:ILeaveSetting) {
-  return await axios.put(`${import.meta.env.VITE_API_URL}/leave-setting/${id}`, data, jsonDataHeader())
-}
-
-export async function createLeaveSetting(data: any) {
-  return await axios.post(`${import.meta.env.VITE_API_URL}/leave-setting`, data, jsonDataHeader())
-}
-
-export async function deleteLeaveSetting(id:string) {
-  return await axios.delete(`${import.meta.env.VITE_API_URL}/leave-setting/${id}`, { ...jsonDataHeader()})
-}
 
 // User Leave Management
 export const getUserLeaves = (data: any) => {

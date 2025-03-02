@@ -3,10 +3,11 @@ import { lazy, Suspense } from "react"
 import { PrivateLayout, PublicLayout } from "./module"
 
 const Login = lazy(() => import("@/pages/login/index"))
-const DashboardClient = lazy(() => import("@/pages/admin/dashboard/index"))
+// const DashboardClient = lazy(() => import("@/pages/admin/dashboard/index"))
 const Dashboard = lazy(() => import("@/pages/user/dashboard/index"))
-const LeaveSettingManagement = lazy(() => import("@/pages/admin/leave/index"))
 const Report = lazy(() => import("@/pages/admin/report/index"))
+const UserReport = lazy(() => import("@/pages/user/report/index"))
+const FormSeven = lazy(() => import("@/pages/admin/form_seven/index"))
 const RegisterPage = lazy(() => import("@/pages/user/register/index"))
 const LoginPage = lazy(() => import("@/pages/user/login/index"))
 
@@ -19,12 +20,12 @@ const routers = createBrowserRouter(
           path="/"
           element={
             <Suspense fallback={<Loading />}>
-              <Login />
+              <LoginPage />
             </Suspense>
           }
         />
          <Route
-          path="/user/register"
+          path="/register"
           element={
             <Suspense fallback={<Loading />}>
               <RegisterPage />
@@ -32,10 +33,10 @@ const routers = createBrowserRouter(
           }
         />
          <Route
-          path="/user/login"
+          path="/admin/login"
           element={
             <Suspense fallback={<Loading />}>
-              <LoginPage />
+              <Login />
             </Suspense>
           }
         />
@@ -47,23 +48,27 @@ const routers = createBrowserRouter(
             index
             element={
               <Suspense fallback={<Loading />}>
-                <DashboardClient />
+                {/* <DashboardClient /> */}
+                <div>
+                  Still Work in Progreess
+                </div>
               </Suspense>
             }
           />
-          <Route
-            path="leave-setting"
-            element={
-              <Suspense fallback={<Loading />}>
-                <LeaveSettingManagement />
-              </Suspense>
-            }
-          />
+
           <Route
             path="report/:userId"
             element={
               <Suspense fallback={<Loading />}>
                 <Report />
+              </Suspense>
+            }
+          />
+            <Route
+            path="form-seven"
+            element={
+              <Suspense fallback={<Loading />}>
+                <FormSeven />
               </Suspense>
             }
           />
@@ -74,6 +79,14 @@ const routers = createBrowserRouter(
             element={
               <Suspense fallback={<Loading />}>
                 <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="report"
+            element={
+              <Suspense fallback={<Loading />}>
+                <UserReport />
               </Suspense>
             }
           />

@@ -77,7 +77,7 @@ const DataTable: React.FC<DataTableProps> = ({
               </TableCell>
               <TableCell>{user.firstName}</TableCell>
               <TableCell>{user.lastName}</TableCell>
-              <TableCell>{user.username}</TableCell>
+              <TableCell>{user.employeeId}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>{user.gender}</TableCell>
               <TableCell>

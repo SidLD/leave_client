@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,6 @@ import { useNavigate, useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { usePDF } from "react-to-pdf"
 import { getUserLeavesReport } from "@/lib/api"
-import type { report } from "@/types/reportType"
 
 export default function LeaveCard() {
   const { userId } = useParams()
@@ -23,7 +22,7 @@ export default function LeaveCard() {
     data: report,
     isLoading,
     error,
-  } = useQuery<report>({
+  } = useQuery<any>({
     queryKey: ["leave_report", userId],
     queryFn: () => getUserLeavesReport({ userId: userId as string }).then((data) => data.data),
     enabled: !!userId,
@@ -165,7 +164,7 @@ export default function LeaveCard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leaves[0] && leaves[0].leaveRecords.map((record) => (
+                  {leaves[0] && leaves[0].leaveRecords.map((record: { _id: Key | null | undefined; dateStart: string | number | Date; leaveType: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; credit: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined; isProcess: any }) => (
                     <TableRow key={record._id}>
                       <TableCell className="text-sm text-center whitespace-nowrap">
                         {format(new Date(record.dateStart), "MMM yyyy")}

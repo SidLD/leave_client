@@ -1,0 +1,328 @@
+/* Base styles */
+.form-container {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.2;
+    width: 8.5in;
+    padding: 0.2in;
+    box-sizing: border-box;
+  }
+  
+  /* Header styles */
+  .form-header {
+    text-align: center;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .form-number {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 10px;
+    text-align: left;
+  }
+  
+  .annex {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 10px;
+  }
+  
+  .form-title {
+    margin-bottom: 10px;
+  }
+  
+  .republic {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  
+  .department {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  
+  .region,
+  .division {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  
+  .form-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
+  /* Updated section styles */
+  .form-section {
+    border: 1px solid #000;
+    margin-bottom: 15px;
+  }
+  
+  .section-title {
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  
+  /* Basic info section */
+  .form-section.basic-info {
+    border: 1px solid #000;
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .form-field label {
+    font-weight: bold;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  
+  .field-value {
+    border-bottom: 1px solid #000;
+    padding-bottom: 2px;
+    font-size: 12px;
+  }
+  
+  .name-fields {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .name-fields > div {
+    flex: 1;
+    text-align: center;
+    padding: 0 5px;
+  }
+  
+  .field-label {
+    font-size: 10px;
+  }
+  
+  /* Leave types section */
+  .leave-options {
+    margin-left: 15px;
+  }
+  
+  .leave-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .citation {
+    font-style: italic;
+    font-size: 8px;
+    color: #000;
+  }
+  
+  /* form-section section */
+  .detail-header {
+    margin: 8px 0 4px;
+    font-style: italic;
+  }
+  
+  .indent-section {
+    margin-left: 20px;
+  }
+  
+  .checkbox-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .underline-field {
+    border-bottom: 1px solid #000;
+    flex-grow: 1;
+    margin-left: 8px;
+    min-width: 100px;
+  }
+  
+  .x-mark {
+    font-weight: bold;
+    margin-left: 8px;
+    font-size: 14px;
+  }
+  
+  /* Working days section */
+  .days-count {
+    font-weight: bold;
+    margin: 8px 0;
+  }
+  
+  .inclusive-dates {
+    margin-top: 12px;
+  }
+  
+  /* Commutation section */
+  .radio-options {
+    margin: 8px 0;
+  }
+  
+  .radio-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  
+  /* Signature blocks */
+  .signature-block {
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  .signature-line {
+    border-bottom: 1px dashed #000;
+    width: 200px;
+    margin: 0 auto 4px;
+  }
+  
+  .signature-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+  }
+  
+  .signature-label {
+    font-size: 10px;
+  }
+  
+  /* Credits table */
+  .credits-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+  }
+  
+  .credits-table th,
+  .credits-table td {
+    border: 0.5px solid #000;
+    padding: 4px;
+    text-align: center;
+  }
+  
+  .credits-table td.italic {
+    font-style: italic;
+  }
+  
+  /* Officer signatures */
+  .officer-signature {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .officer-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+  }
+  
+  .officer-title {
+    font-size: 11px;
+  }
+  
+  /* Special Order section */
+  .special-order-section {
+    margin-top: 20px;
+  }
+  
+  .order-number {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .order-content {
+    font-size: 11px;
+  }
+  
+  .applicant-details {
+    margin: 15px 0;
+  }
+  
+  .name-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .detail-labels {
+    display: flex;
+    justify-content: space-between;
+    max-width: 400px;
+    margin-top: 4px;
+    font-size: 10px;
+  }
+  
+  .authority-line {
+    text-align: right;
+    margin: 15px 0;
+  }
+  
+  .final-signature {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .superintendent-name {
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .superintendent-title {
+    font-size: 11px;
+  }
+  
+  /* Copy furnished section */
+  .copy-furnished {
+    margin-top: 15px;
+  }
+  
+  .copy-label {
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  
+  .copy-item {
+    margin-left: 20px;
+    margin-bottom: 2px;
+  }
+  
+  /* Grid layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  
+  /* Utility classes */
+  .mt-4 {
+    margin-top: 1rem;
+  }
+  
+  /* Print-specific styles */
+  @media print {
+    .form-container {
+      padding: 0;
+      margin: 0;
+      box-shadow: none;
+    }
+    
+  }
+  
+  
