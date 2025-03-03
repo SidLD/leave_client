@@ -11,14 +11,23 @@ import "./styles/form.css"
 import { useStore } from "@/store/app.store"
 import { leaveFormSchema } from "@/types/leaveType"
 import { IUser } from "@/types/userType"
+import { format } from "date-fns"
+import { getUserSetting } from "@/lib/api"
+import { useQuery } from "@tanstack/react-query"
+import { useParams } from "react-router-dom"
 
 type LeaveFormValues = z.infer<typeof leaveFormSchema>
 
 export default function LeaveApplicationForm() {
-  const {getUserInfo} = useStore()
   const formRef = useRef<HTMLDivElement>(null)
   const [userDetail, setUserDetail] = useState<IUser | null>(null);
+  const {applicationId, userId} = useParams()
+  const {getUserInfo} = useStore()
 
+  const {data: userData} = useQuery({
+    queryKey: ["userSettings"],
+    queryFn: () => getUserSetting(getUserInfo().role == 'USER' ? getUserInfo().id : userId).then(data => data.data),
+  })
   
   const form = useForm<LeaveFormValues>({
     resolver: zodResolver(leaveFormSchema),
@@ -63,19 +72,19 @@ export default function LeaveApplicationForm() {
 
   useEffect(() => {
     const init = async () => {
-      const userDetail = await getUserInfo()
-      if(userDetail.role == 'USER'){
+      if(applicationId){
+        
+      }
+      else if(userDetail){
         setUserDetail(userDetail);
-        form.setValue('dateOfFiling', userDetail.dateOfFiling || 'NONE')
-        form.setValue('position', userDetail.position || 'NONE')
-        form.setValue('salary', userDetail.salary || '0')
+        form.setValue('dateOfFiling', new Date().toString())
+        form.setValue('position', userData.position || 'NONE')
+        form.setValue('salary', userData.salary || '0')
         form.trigger()
-      }else {
-        //Fetch Here
       }
     }
     init()
-  }, [])
+  }, [userData])
 
   useEffect(() => {
     console.log(errors)
@@ -123,9 +132,7 @@ export default function LeaveApplicationForm() {
                 <div className="grid-2">
                   <div className="form-field">
                     <label>1. OFFICE/DEPARTMENT</label>
-                    <p className="field-value">
-                      <input type="text" className="w-full" {...register('officeDepartment')} />
-                    </p>
+                    <p className="field-value">{userDetail?.officeDepartment}</p>
                   </div>
                   <div className="form-field">
                     <label>2. NAME</label>
@@ -148,7 +155,7 @@ export default function LeaveApplicationForm() {
                 <div className="grid-3">
                   <div className="form-field">
                     <label>3. DATE OF FILING</label>
-                    <p className="field-value">{new Date(form.getValues('dateOfFiling')).toString()}</p>
+                    <p className="field-value">{format(form.getValues('dateOfFiling') ? new Date(form.getValues('dateOfFiling')) : new Date(),  "MMMM dd yyyy" )}</p>
                   </div>
                   <div className="form-field">
                     <label>4. POSITION</label>

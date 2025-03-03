@@ -34,6 +34,12 @@ export default function DashboardLayout() {
       title: "Form 6",
       roles: ['USER']
     },
+    {
+      link:'/user/setting',
+      icon: <Settings2 size={20} />,
+      title: "Setting",
+      roles: ['USER']
+    },
   ]
   const handleLogout = () => {
     clear()

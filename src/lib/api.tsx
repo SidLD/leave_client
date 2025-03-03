@@ -41,6 +41,19 @@ export const deleteUser = (data:any) => {
     })
 };
 
+export const getUserSetting = (id:string) => {
+  return axios.get(`${import.meta.env.VITE_API_URL}/user-setting/${id}`, { ...jsonDataHeader()})
+};
+
+export const updateUserSetting = (data:any) => {
+  return axios.put(`${import.meta.env.VITE_API_URL}/user-setting`,  data, jsonDataHeader())
+};
+
+export const updateUserPassword = (data:any) => {
+  return axios.put(`${import.meta.env.VITE_API_URL}/user-password`, data, jsonDataHeader())
+};
+
+
 export const updateNotification = (id:string, data:any) => {
   return new Promise((resolve, reject) => {
     axios

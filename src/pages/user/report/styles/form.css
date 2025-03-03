@@ -56,7 +56,7 @@
     font-weight: bold;
     margin-top: 10px;
   }
-  
+
   /* Updated section styles */
   .form-section {
     border: 1px solid #000;
@@ -321,6 +321,9 @@
       padding: 0;
       margin: 0;
       box-shadow: none;
+    }
+    input{
+      background: transparent;
     }
     
   }
