@@ -110,7 +110,7 @@ export const leaveFormSchema = z.object({
       emergency: z.boolean().default(false),
       adoption: z.boolean().default(false),
       other: z.string().optional().nullable(), // Optional custom leave type
-    }),
+    }).optional(),
     leaveDetails: z.object({
       vacationDetails: z
         .object({
@@ -138,20 +138,20 @@ export const leaveFormSchema = z.object({
       womenSpecialLeaveDetails: z.string().optional().nullable(),
     }),
     leaveDuration: z.object({
-      inclusiveDates: z.array(z.string()),
-      numberOfDays: z.number().min(1),
-      commutationRequested: z.boolean().default(false),
-      commutationNotRequested: z.boolean().default(false),
+      inclusiveDates: z.string(),
+      numberOfDays: z.string(),
+      commutationRequested: z.boolean().optional(),
+      commutationNotRequested: z.boolean().optional(),
     }),
   }),
 
   certifiedLeaveCredit: z.object({
     asOf: z.string(),
-    totalEarnedVacationLeave: z.number().nonnegative(),
-    totalEarnedSickLeave: z.number().nonnegative(),
-    lessThisApplicationVacationLeave: z.number().nonnegative(),
-    lessThisApplicationSickLeave: z.number().nonnegative(),
-  }),
+    totalEarnedVacationLeave: z.number().optional(),
+    totalEarnedSickLeave: z.number().optional(),
+    lessThisApplicationVacationLeave: z.number().optional(),
+    lessThisApplicationSickLeave: z.number().optional(),
+  }).optional(),
 
   reccomendation: z.object({
     approval: z.boolean().optional(),
@@ -160,17 +160,17 @@ export const leaveFormSchema = z.object({
   }),
 
   commutation: z.object({
-    forApproval: z.string().optional().nullable(),
-    forDisApproval: z.string().optional().nullable(),
-  }),
+    forApproval: z.string().optional(),
+    forDisApproval: z.string().optional(),
+  }).optional(),
 
   approvedFor: z.object({
-    dasyWithPay: z.number().nonnegative(),
-    daysWithoutPay: z.number().nonnegative(),
+    dasyWithPay: z.string(),
+    daysWithoutPay: z.string()
   }),
 
-  disapproveFor: z.string().optional().nullable(),
-  specialOrderNo: z.string().optional().nullable(),
+  disapproveFor: z.string().optional(),
+  specialOrderNo: z.string().optional(),
   date: z.string(),
   period: z.string(),
   approverName: z.string(),
@@ -180,7 +180,7 @@ export type LeaveReportType = {
   id?: string,
   detailsOfApplication: {
     leaveDuration: {
-      inclusiveDates: string[];
+      inclusiveDates: string;
       numberOfDays: number;
       commutationRequested: boolean;
       commutationNotRequested: boolean;

@@ -1,4 +1,11 @@
 /* Base styles */
+h3, h2 {
+  padding-bottom: 7px;
+}
+input{
+  background-color: transparent;
+}
+
 .form-container {
     font-family: Arial, sans-serif;
     font-size: 12px;
@@ -86,7 +93,7 @@
   
   .field-value {
     border-bottom: 1px solid #000;
-    padding-bottom: 2px;
+    padding-bottom: 5px;
     font-size: 12px;
   }
   
@@ -114,18 +121,24 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    margin-bottom: 4px;
+    padding-bottom: 5px;
   }
   
   .citation {
     font-style: italic;
+    padding-top: 2px;
     font-size: 8px;
     color: #000;
   }
   
   /* form-section section */
   .detail-header {
-    margin: 8px 0 4px;
+    padding: 8px 0 10px;
+    font-style: italic;
+  }
+
+  .detail-header-sub {
+    padding: 8px 0 4px;
     font-style: italic;
   }
   
@@ -165,7 +178,7 @@
   
   /* Commutation section */
   .radio-options {
-    margin: 8px 0;
+    padding: 8px 0;
   }
   
   .radio-line {
@@ -200,7 +213,7 @@
   .credits-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 10px 0;
+    padding: 10px 0;
   }
   
   .credits-table th,
@@ -322,13 +335,6 @@
       margin: 0;
       box-shadow: none;
     }
-    input{
-      background: transparent;
-    }
-    .field-value{
-      padding-bottom: 10px;
-    }
-    
   }
   
   

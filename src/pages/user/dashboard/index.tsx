@@ -297,10 +297,6 @@ export default function LeaveReportsTable() {
     router(`/user/report/application/${id}`)
   }
 
-  const handleView = (id: string) => {
-    router(`/leave-report/view/${id}`)
-  }
-
   const handleDelete = async (id: string) => {
     try {
       await deleteLeaveReport(id)

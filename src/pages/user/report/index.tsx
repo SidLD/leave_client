@@ -8,13 +8,13 @@ import type { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import "./styles/form.css"
-import { useStore } from "@/store/app.store"
 import { leaveFormSchema } from "@/types/leaveType"
 import type { IUser } from "@/types/userType"
 import { format } from "date-fns"
-import { getUserSetting } from "@/lib/api"
-import { useQuery } from "@tanstack/react-query"
+import { createLeaveRecord, getUserSetting } from "@/lib/api"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "react-router-dom"
+import { useToast } from "@/hooks/use-toast"
 
 type LeaveFormValues = z.infer<typeof leaveFormSchema>
 
@@ -23,10 +23,11 @@ export default function LeaveApplicationForm() {
   const [userDetail, setUserDetail] = useState<IUser | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const { type, id } = useParams()
+  const {toast} = useToast()
 
-  const { data: userData, isLoading: userLoading } = useQuery({
+  const { data: userData, isLoading: userLoading } = useQuery<IUser | null>({
     queryKey: ["userSettings"],
-    queryFn: () => type == 'new' ? getUserSetting(id as string).then(data => data.data) : () => null
+    queryFn: () => type == 'new' ? getUserSetting(id as string).then(data => data.data) : null
   })
 
   const form = useForm<LeaveFormValues>({
@@ -39,10 +40,32 @@ export default function LeaveApplicationForm() {
     formState: { errors },
   } = form
 
+  const leaveApplication = useMutation({
+    mutationKey: ['createLeaveApplication'],
+    mutationFn: (data:{userId: string, data: LeaveFormValues}) => createLeaveRecord(data.userId, data.data),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "You have successfully created leave",
+      })
+    },
+    onError: (error: Error) => {
+      console.error(error)
+      toast({
+        variant: "destructive",
+        title: "An error occurred",
+        description: error.message || "Something went wrong while applying leave",
+      })
+    },
+  })
+
   const onSubmit = async (data: LeaveFormValues) => {
     try {
       setSubmitError(null)
       console.log("Form submitted:", data)
+      if(type == 'new'){
+        leaveApplication.mutateAsync({userId: id as string, data})
+      }
       await handleDownloadPDF()
       // You can add API call here to submit the form data
     } catch (error) {
@@ -59,6 +82,7 @@ export default function LeaveApplicationForm() {
           logging: false,
           useCORS: true,
           allowTaint: true,
+          backgroundColor: null
         })
         const imgData = canvas.toDataURL("image/jpeg", 1.0)
         const pdf = new jsPDF("p", "mm", "legal")
@@ -88,9 +112,31 @@ export default function LeaveApplicationForm() {
       }
       else if(userData){
         setUserDetail(userData);
+        form.reset({
+          detailsOfApplication: {
+            typeOfLeave: {
+              vacation: false,
+              mandatory: false,
+              sick: false,
+              maternity:  false,
+              paternity:  false,
+              specialPrivilege: false,
+              soloParent: false,
+              study:  false,
+              vawc: false,
+              rehabilitation: false,
+              women: false,
+              emergency: false,
+              adoption: false,
+              other: null, // Allow nullable value
+            },
+          }
+        }),
         form.setValue('dateOfFiling', new Date().toString())
         form.setValue('position', userData.position || 'NONE')
-        form.setValue('salary', userData.salary || '0')
+        form.setValue('salary', userData.salary || 0)
+        form.setValue('user', id as string);
+        form.setValue('officeDepartment', userData.officeDepartment)
         form.trigger()
       }else if(!userLoading){
         navigate('/')
@@ -168,6 +214,7 @@ export default function LeaveApplicationForm() {
             </div>
           )}
           <div className="mb-4">
+          {JSON.stringify(errors)}
             <button
               type="submit"
               className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded hover:bg-blue-700 disabled:bg-blue-400"
@@ -184,7 +231,7 @@ export default function LeaveApplicationForm() {
               </div>
             )}
           </div>
-          <div ref={formRef} className="bg-white rounded-lg shadow-lg form-container">
+          <div ref={formRef} className="p-0 bg-white rounded-lg shadow-lg form-container">
             <div className="form-header">
               <div className="form-number">
                 <p>Civil Service Form No. 6</p>
@@ -247,13 +294,13 @@ export default function LeaveApplicationForm() {
                   <div className=" leave-types">
                     <h3>6.A TYPE OF LEAVE TO BE AVAILED OF</h3>
                     <div className="leave-options">
-                      <div className="leave-option">
-                        <input type="checkbox" id="vacation" {...register("detailsOfApplication.typeOfLeave.vacation")} />
-                        <label htmlFor="vacation">Vacation Leave</label>
-                        <span className="citation">(Sec. 51, Rule XVI, Omnibus Rules Implementing E.O. No. 292)</span>
-                      </div>
                       {[
                         {
+                          id: "vacation",
+                          label: "Vacation Leave",
+                          path: "detailsOfApplication.typeOfLeave.vacation",
+                          citation: "(Sec. 51, Rule XVI, Omnibus Rules Implementing E.O. No. 292)",
+                        },{
                           id: "mandatory",
                           label: "Mandatory/Forced Leave",
                           path: "detailsOfApplication.typeOfLeave.mandatory",
@@ -385,7 +432,7 @@ export default function LeaveApplicationForm() {
                       <div className="pt-2 pb-0 mb-0 underline-field">
                         <input readOnly className="w-full text-center" type="text"  />
                       </div>
-                      <p className="pt-6 leading-5 detail-header">In case of Study Leave:</p>
+                      <p className="pt-6 leading-5 detail-header-sub">In case of Study Leave:</p>
                       <div className="leading-5 indent-section">
                         <div className="checkbox-line">
                           <input type="checkbox" id="masters" value="masters" {...register("detailsOfApplication.leaveDetails.studyLeaveDetails.masterDegree")} />
@@ -396,7 +443,7 @@ export default function LeaveApplicationForm() {
                           <label htmlFor="bar-board">BAR/Board Examination Review</label>
                         </div>
                       </div>
-                      <p className="detail-header">Other purpose:</p>
+                      <p className="detail-header-sub">Other purpose:</p>
                       <div className="leading-5 indent-section">
                         <div className="checkbox-line">
                           
@@ -426,13 +473,13 @@ export default function LeaveApplicationForm() {
                   </div>
                   <div className="commutation">
                     <h3>6.D COMMUTATION</h3>
-                    <div className="radio-options">
+                    <div className="radio-options detail-header-sub">
                       <div className="radio-line">
-                        <input type="checkbox" id="not-requested" value="not-requested" {...register("detailsOfApplication.leaveDuration.commutationRequested")} />
+                        <input type="checkbox" {...register("detailsOfApplication.leaveDuration.commutationRequested")} />
                         <label htmlFor="not-requested">Not Requested</label>
                       </div>
                       <div className="radio-line">
-                        <input type="checkbox" id="requested" value="requested" {...register("detailsOfApplication.leaveDuration.commutationNotRequested")} />
+                        <input type="checkbox" {...register("detailsOfApplication.leaveDuration.commutationNotRequested")} />
                         <label htmlFor="requested">Requested</label>
                       </div>
                     </div>
@@ -452,7 +499,7 @@ export default function LeaveApplicationForm() {
                 <div className="grid-2 border-black border-t-[1px]">
                   <div className="px-2 mt-2 certification">
                     <h3>7.A CERTIFICATION OF LEAVE CREDITS</h3>
-                    <div className="flex pt-2">
+                    <div className="flex pt-2 pb-1">
                       <p className="">As of </p>
                       <div className="underline-field">
                         <input className="w-full text-center" type="text" {...register("certifiedLeaveCredit.asOf")} />
@@ -462,7 +509,7 @@ export default function LeaveApplicationForm() {
                       <thead>
                         <tr>
                           <th></th>
-                          <th>Vacation Leave</th>
+                          <th className="pb-2">Vacation Leave</th>
                           <th>Sick Leave</th>
                         </tr>
                       </thead>
