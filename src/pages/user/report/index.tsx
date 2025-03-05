@@ -4,31 +4,31 @@ import { useEffect, useRef, useState } from "react"
 import { Download } from "lucide-react"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
-import { z } from "zod"
+import type { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import "./styles/form.css"
 import { useStore } from "@/store/app.store"
 import { leaveFormSchema } from "@/types/leaveType"
-import { IUser } from "@/types/userType"
+import type { IUser } from "@/types/userType"
 import { format } from "date-fns"
 import { getUserSetting } from "@/lib/api"
 import { useQuery } from "@tanstack/react-query"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 
 type LeaveFormValues = z.infer<typeof leaveFormSchema>
 
 export default function LeaveApplicationForm() {
   const formRef = useRef<HTMLDivElement>(null)
-  const [userDetail, setUserDetail] = useState<IUser | null>(null);
-  const {applicationId, userId} = useParams()
-  const {getUserInfo} = useStore()
+  const [userDetail, setUserDetail] = useState<IUser | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const { type, id } = useParams()
 
-  const {data: userData} = useQuery({
+  const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ["userSettings"],
-    queryFn: () => getUserSetting(getUserInfo().role == 'USER' ? getUserInfo().id : userId).then(data => data.data),
+    queryFn: () => type == 'new' ? getUserSetting(id as string).then(data => data.data) : () => null
   })
-  
+
   const form = useForm<LeaveFormValues>({
     resolver: zodResolver(leaveFormSchema),
   })
@@ -39,9 +39,16 @@ export default function LeaveApplicationForm() {
     formState: { errors },
   } = form
 
-  const onSubmit = (data: LeaveFormValues) => {
-    console.log("Form submitted:", data)
-    handleDownloadPDF()
+  const onSubmit = async (data: LeaveFormValues) => {
+    try {
+      setSubmitError(null)
+      console.log("Form submitted:", data)
+      await handleDownloadPDF()
+      // You can add API call here to submit the form data
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      setSubmitError(error instanceof Error ? error.message : "An error occurred while submitting the form")
+    }
   }
 
   const handleDownloadPDF = async () => {
@@ -66,21 +73,27 @@ export default function LeaveApplicationForm() {
         pdf.save("leave-application.pdf")
       } catch (error) {
         console.error("Error generating PDF:", error)
+        throw new Error("Failed to generate PDF. Please try again.")
       }
+    } else {
+      throw new Error("Form reference not found")
     }
   }
 
+  const navigate = useNavigate()
   useEffect(() => {
     const init = async () => {
-      if(applicationId){
+      if(type == 'application'){
         
       }
-      else if(userDetail){
-        setUserDetail(userDetail);
+      else if(userData){
+        setUserDetail(userData);
         form.setValue('dateOfFiling', new Date().toString())
         form.setValue('position', userData.position || 'NONE')
         form.setValue('salary', userData.salary || '0')
         form.trigger()
+      }else if(!userLoading){
+        navigate('/')
       }
     }
     init()
@@ -105,12 +118,72 @@ export default function LeaveApplicationForm() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded hover:bg-blue-700"
-          >
-            Submit
-          </button>
+          {Object.keys(errors).length > 0 && (
+            <div className="p-3 mb-4 border border-red-200 rounded bg-red-50">
+              <h3 className="font-medium text-red-600">Please correct the following errors:</h3>
+              <ul className="pl-5 mt-2 space-y-1 text-sm text-red-600 list-disc">
+      {errors.user && <li>User information is required</li>}
+
+      {/* Leave Duration */}
+      {errors.detailsOfApplication?.leaveDuration?.numberOfDays && (
+        <li>Number of days is required and must be at least 1</li>
+      )}
+      {errors.detailsOfApplication?.leaveDuration?.inclusiveDates && <li>Inclusive dates are required</li>}
+      {errors.detailsOfApplication?.leaveDuration?.commutationRequested &&
+        errors.detailsOfApplication?.leaveDuration?.commutationNotRequested && (
+          <li>Please select either "Commutation Requested" or "Not Requested"</li>
+        )}
+
+      {/* Leave Credits */}
+      {errors.certifiedLeaveCredit?.asOf && <li>Leave credit certification date is required</li>}
+      {errors.certifiedLeaveCredit?.totalEarnedVacationLeave && (
+        <li>Total earned vacation leave must be a non-negative number</li>
+      )}
+      {errors.certifiedLeaveCredit?.totalEarnedSickLeave && (
+        <li>Total earned sick leave must be a non-negative number</li>
+      )}
+      {errors.certifiedLeaveCredit?.lessThisApplicationVacationLeave && (
+        <li>Vacation leave deduction must be a non-negative number</li>
+      )}
+      {errors.certifiedLeaveCredit?.lessThisApplicationSickLeave && (
+        <li>Sick leave deduction must be a non-negative number</li>
+      )}
+
+      {/* Approval Information */}
+      {errors.date && <li>Date is required</li>}
+      {errors.period && <li>Period is required</li>}
+      {errors.approverName && <li>Approver name is required</li>}
+      {errors.approverDesignation && <li>Approver designation is required</li>}
+
+      {/* Recommendation */}
+      {errors.reccomendation?.disapprovalDetail && <li>Disapproval reason is required when disapproved</li>}
+
+      {/* Approved For */}
+      {errors.approvedFor?.dasyWithPay && <li>Days with pay must be a non-negative number</li>}
+      {errors.approvedFor?.daysWithoutPay && <li>Days without pay must be a non-negative number</li>}
+
+      {/* Type of Leave */}
+      {errors.detailsOfApplication?.typeOfLeave && <li>Please select at least one type of leave</li>}
+    </ul>
+            </div>
+          )}
+          <div className="mb-4">
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded hover:bg-blue-700 disabled:bg-blue-400"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? "Submitting..." : "Submit"}
+            </button>
+            {submitError && (
+              <div className="p-2 mt-2 text-red-600 border border-red-200 rounded bg-red-50">{submitError}</div>
+            )}
+            {Object.keys(errors).length > 0 && (
+              <div className="p-2 mt-2 text-red-600 border border-red-200 rounded bg-red-50">
+                Please fix the errors in the form before submitting.
+              </div>
+            )}
+          </div>
           <div ref={formRef} className="bg-white rounded-lg shadow-lg form-container">
             <div className="form-header">
               <div className="form-number">
@@ -210,7 +283,7 @@ export default function LeaveApplicationForm() {
                           path: "detailsOfApplication.typeOfLeave.specialPrivilege",
                           citation: "(Sec. 21, Rule XVI, Omnibus Rules Implementing E.O. No. 292)",
                         },
-                        { 
+                        {
                           id: "solo", label: "Solo Parent Leave", 
                           citation: "(RA No. 8972 / CSC MC No. 8, s. 2004)",
                           path: "detailsOfApplication.typeOfLeave.soloParent" 
@@ -298,7 +371,7 @@ export default function LeaveApplicationForm() {
                             <input className="w-full text-center" type="text" {...register("detailsOfApplication.leaveDetails.sickLeaveDetails.outPatientDetail")} />
                           </div>
                         </div>
-                        <div className="pb-0 mb-0 underline-field"> 
+                        <div className="pb-0 mb-0 underline-field">
                           <input type="text" readOnly/>
                         </div>
                       </div>
@@ -435,10 +508,10 @@ export default function LeaveApplicationForm() {
                         <input type="text" className="w-full" readOnly />
                       </div>
                       <div className="underline-field">
-                      <input type="text" className="w-full" readOnly />
+                        <input type="text" className="w-full" readOnly />
                       </div>
                       <div className="underline-field">
-                      <input type="text" className="w-full" readOnly />
+                        <input type="text" className="w-full" readOnly />
                       </div>
                     </div>
                     <div className="officer-signature">

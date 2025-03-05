@@ -2,6 +2,7 @@ import { z } from "zod";
 import { IUser } from "./userType";
 
 export type LeaveFormType = {
+  _id?: string,
   officeDepartment: string;
   user: IUser;
   dateOfFiling: string;
@@ -48,7 +49,7 @@ export type LeaveFormType = {
       womenSpecialLeaveDetails?: string | null;
     };
     leaveDuration: {
-      inclusiveDates: string[];
+      inclusiveDates: string;
       numberOfDays: number;
       commutationRequested: boolean;
       commutationNotRequested: boolean;
@@ -86,8 +87,6 @@ export type LeaveFormType = {
   approverName: string;
   approverDesignation: string;
 };
-
-
 export const leaveFormSchema = z.object({
   officeDepartment: z.string(),
   user: z.string(), 
@@ -177,3 +176,45 @@ export const leaveFormSchema = z.object({
   approverName: z.string(),
   approverDesignation: z.string(),
 });
+export type LeaveReportType = {
+  id?: string,
+  detailsOfApplication: {
+    leaveDuration: {
+      inclusiveDates: string[];
+      numberOfDays: number;
+      commutationRequested: boolean;
+      commutationNotRequested: boolean;
+    };
+  };
+
+  certifiedLeaveCredit: {
+    asOf: string;
+    totalEarnedVacationLeave: number;
+    totalEarnedSickLeave: number;
+    lessThisApplicationVacationLeave: number;
+    lessThisApplicationSickLeave: number;
+  };
+
+  reccomendation: {
+    approval?: boolean;
+    disapproval?: boolean;
+    disapprovalDetail?: string;
+  };
+
+  commutation: {
+    forApproval?: string | null;
+    forDisApproval?: string | null;
+  };
+
+  approvedFor: {
+    dasyWithPay: number;
+    daysWithoutPay: number;
+  };
+
+  disapproveFor?: string | null;
+  specialOrderNo?: string | null;
+  date: string;
+  period: string;
+  approverName: string;
+  approverDesignation: string;
+};

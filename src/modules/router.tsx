@@ -84,7 +84,7 @@ const routers = createBrowserRouter(
             }
           />
           <Route
-            path="report"
+            path="report/:type/:id"
             element={
               <Suspense fallback={<Loading />}>
                 <UserReport />

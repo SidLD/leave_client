@@ -325,6 +325,9 @@
     input{
       background: transparent;
     }
+    .field-value{
+      padding-bottom: 10px;
+    }
     
   }
   

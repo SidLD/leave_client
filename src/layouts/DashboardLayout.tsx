@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "@/store/app.store"
 
 export default function DashboardLayout() {
-  const {clear, getRole} = useStore()
+  const {clear, getRole, getUserInfo} = useStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate()
   const links = [
@@ -29,7 +29,7 @@ export default function DashboardLayout() {
       roles: ['USER']
     },
     {
-      link:'/user/report',
+      link:`/user/report/new/${getUserInfo().id}/`,
       icon: <Settings2 size={20} />,
       title: "Form 6",
       roles: ['USER']
