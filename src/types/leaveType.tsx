@@ -2,15 +2,15 @@ import { z } from "zod";
 import { IUser } from "./userType";
 
 export type LeaveFormType = {
-  _id?: string,
+  _id?: string;
   officeDepartment: string;
-  user: IUser;
+  user: IUser; 
   dateOfFiling: string;
   position: string;
   salary: number;
 
   detailsOfApplication: {
-    typeOfLeave: {
+    typeOfLeave?: {
       vacation: boolean;
       mandatory: boolean;
       sick: boolean;
@@ -26,7 +26,7 @@ export type LeaveFormType = {
       adoption: boolean;
       other?: string | null;
     };
-    leaveDetails: {
+    leaveDetails?: {
       vacationDetails?: {
         withinPH: boolean;
         abroad?: boolean | null;
@@ -39,54 +39,56 @@ export type LeaveFormType = {
         outPatientDetail?: string | null;
       };
       studyLeaveDetails: {
-        masterDegree?: string | null;
-        boardExam?: string | null;
+        masterDegree?: boolean | null;
+        boardExam?: boolean | null;
       };
       otherPurpose: {
-        monitization?: string | null;
-        terminalLeave?: string | null;
+        monitization?: boolean | null;
+        terminalLeave?: boolean | null;
       };
       womenSpecialLeaveDetails?: string | null;
     };
     leaveDuration: {
       inclusiveDates: string;
-      numberOfDays: number;
+      numberOfDays: string;
       commutationRequested: boolean;
       commutationNotRequested: boolean;
     };
   };
 
-  certifiedLeaveCredit: {
-    asOf: string;
-    totalEarnedVacationLeave: number;
-    totalEarnedSickLeave: number;
-    lessThisApplicationVacationLeave: number;
-    lessThisApplicationSickLeave: number;
+  certifiedLeaveCredit?: {
+    asOf: boolean;
+    totalEarnedVacationLeave?: number;
+    totalEarnedSickLeave?: number;
+    lessThisApplicationVacationLeave?: number;
+    lessThisApplicationSickLeave?: number;
   };
 
   reccomendation: {
-    approval?: boolean;
-    disapproval?: boolean;
+    approval: boolean;
+    disapproval: boolean;
     disapprovalDetail?: string;
   };
 
   commutation: {
-    forApproval?: string | null;
-    forDisApproval?: string | null;
+    forApproval: boolean;
+    forDisApproval: boolean;
   };
 
-  approvedFor: {
-    dasyWithPay: number;
-    daysWithoutPay: number;
-  };
+  disapproveFor?: string;
+  specialOrderNo?: string;
+  date?: string;
+  period?: string;
+  approverName?: string;
+  approverDesignation?: string;
 
-  disapproveFor?: string | null;
-  specialOrderNo?: string | null;
-  date: string;
-  period: string;
-  approverName: string;
-  approverDesignation: string;
+  leaveCreditApprover: string;
+  leaveCreditApproverPosition: string;
+  specialOrderApprover: string;
+  specialOrderApproverPosition: string;
+  status : 'PENDING' | 'APPROVED' | 'REJECTED'
 };
+
 export const leaveFormSchema = z.object({
   officeDepartment: z.string(),
   user: z.string(), 
@@ -128,54 +130,56 @@ export const leaveFormSchema = z.object({
         })
         .optional(),
       studyLeaveDetails: z.object({
-        masterDegree: z.string().optional().nullable(),
-        boardExam: z.string().optional().nullable(),
+        masterDegree: z.boolean().optional().nullable(),
+        boardExam: z.boolean().optional().nullable(),
       }),
       otherPurpose: z.object({
-        monitization: z.string().optional().nullable(),
-        terminalLeave: z.string().optional().nullable(),
+        monitization: z.boolean().optional().nullable(),
+        terminalLeave: z.boolean().optional().nullable(),
       }),
       womenSpecialLeaveDetails: z.string().optional().nullable(),
-    }),
+    }).optional(),
+    
     leaveDuration: z.object({
       inclusiveDates: z.string(),
       numberOfDays: z.string(),
-      commutationRequested: z.boolean().optional(),
-      commutationNotRequested: z.boolean().optional(),
+      commutationRequested: z.boolean(),
+      commutationNotRequested: z.boolean(),
     }),
   }),
 
   certifiedLeaveCredit: z.object({
-    asOf: z.string(),
-    totalEarnedVacationLeave: z.number().optional(),
-    totalEarnedSickLeave: z.number().optional(),
-    lessThisApplicationVacationLeave: z.number().optional(),
-    lessThisApplicationSickLeave: z.number().optional(),
+    asOf: z.boolean(),
+    totalEarnedVacationLeave: z.string().optional(),
+    totalEarnedSickLeave: z.string().optional(),
+    lessThisApplicationVacationLeave: z.string().optional(),
+    lessThisApplicationSickLeave: z.string().optional(),
   }).optional(),
 
   reccomendation: z.object({
-    approval: z.boolean().optional(),
-    disapproval: z.boolean().optional(),
+    approval: z.boolean(),
+    disapproval: z.boolean(),
     disapprovalDetail: z.string().optional() 
   }),
 
   commutation: z.object({
-    forApproval: z.string().optional(),
-    forDisApproval: z.string().optional(),
-  }).optional(),
-
-  approvedFor: z.object({
-    dasyWithPay: z.string(),
-    daysWithoutPay: z.string()
+    forApproval: z.boolean(),
+    forDisApproval: z.boolean(),
   }),
 
   disapproveFor: z.string().optional(),
   specialOrderNo: z.string().optional(),
   date: z.string(),
-  period: z.string(),
-  approverName: z.string(),
-  approverDesignation: z.string(),
+  period: z.string().optional(),
+  approverName: z.string().optional(),
+  approverDesignation: z.string().optional(),
+
+  leaveCreditApprover: z.string(),
+  leaveCreditApproverPosition: z.string(),
+  specialOrderApprover: z.string(),
+  specialOrderApproverPosition: z.string()
 });
+
 export type LeaveReportType = {
   id?: string,
   detailsOfApplication: {

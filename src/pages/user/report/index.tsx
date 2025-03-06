@@ -23,6 +23,7 @@ export default function LeaveApplicationForm() {
   const [userDetail, setUserDetail] = useState<IUser | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const { type, id } = useParams()
+  const [showStaticView, setShowStaticView] = useState(false);
   const {toast} = useToast()
 
   const { data: userData, isLoading: userLoading } = useQuery<IUser | null>({
@@ -42,7 +43,7 @@ export default function LeaveApplicationForm() {
 
   const leaveApplication = useMutation({
     mutationKey: ['createLeaveApplication'],
-    mutationFn: (data:{userId: string, data: LeaveFormValues}) => createLeaveRecord(data.userId, data.data),
+    mutationFn: (data:LeaveFormValues) => createLeaveRecord(data),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -64,22 +65,33 @@ export default function LeaveApplicationForm() {
       setSubmitError(null)
       console.log("Form submitted:", data)
       if(type == 'new'){
-        leaveApplication.mutateAsync({userId: id as string, data})
+        leaveApplication.mutateAsync(data)
       }
-      await handleDownloadPDF()
-      // You can add API call here to submit the form data
+      handleDownloadPDF()
     } catch (error) {
       console.error("Error submitting form:", error)
       setSubmitError(error instanceof Error ? error.message : "An error occurred while submitting the form")
     }
   }
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = () => {
+    setShowStaticView(true);
+    setTimeout(() => {
+      generatePDF();
+    }, 200); 
+  };
+
+  const generatePDF = async () => {
+    if (!formRef.current) {
+      console.error("Form reference not found");
+      setShowStaticView(false);
+      return;
+    }
     if (formRef.current) {
       try {
         const canvas = await html2canvas(formRef.current, {
           scale: 2,
-          logging: false,
+          logging: true,
           useCORS: true,
           allowTaint: true,
           backgroundColor: null
@@ -98,6 +110,8 @@ export default function LeaveApplicationForm() {
       } catch (error) {
         console.error("Error generating PDF:", error)
         throw new Error("Failed to generate PDF. Please try again.")
+      } finally {
+        setShowStaticView(false)
       }
     } else {
       throw new Error("Form reference not found")
@@ -115,7 +129,7 @@ export default function LeaveApplicationForm() {
         form.reset({
           detailsOfApplication: {
             typeOfLeave: {
-              vacation: false,
+              vacation: true,
               mandatory: false,
               sick: false,
               maternity:  false,
@@ -129,14 +143,36 @@ export default function LeaveApplicationForm() {
               emergency: false,
               adoption: false,
               other: null, // Allow nullable value
+            }, 
+            leaveDuration: {
+              numberOfDays: '1 Days',
+              inclusiveDates: '',
+              commutationRequested: false,
+              commutationNotRequested: false,
             },
-          }
+          },
+          commutation: {
+            forApproval: true ,
+            forDisApproval: false,
+          },
+          reccomendation:{
+            approval: true,
+            disapproval: false,
+            disapprovalDetail: ''
+          },
+          date: format(new Date(), "MMMM dd yyyy"),
+          period: '',
+          
         }),
         form.setValue('dateOfFiling', new Date().toString())
         form.setValue('position', userData.position || 'NONE')
         form.setValue('salary', userData.salary || 0)
         form.setValue('user', id as string);
         form.setValue('officeDepartment', userData.officeDepartment)
+        form.setValue('leaveCreditApprover', "GRACE S. PAGUNSAN")
+        form.setValue('leaveCreditApproverPosition', "Administrative Officer V") 
+        form.setValue('specialOrderApprover', "JUN-NILLOU D. DULPO EdD")
+        form.setValue('specialOrderApproverPosition', "Assistant Schools Division Superintendent")
         form.trigger()
       }else if(!userLoading){
         navigate('/')
@@ -168,53 +204,42 @@ export default function LeaveApplicationForm() {
             <div className="p-3 mb-4 border border-red-200 rounded bg-red-50">
               <h3 className="font-medium text-red-600">Please correct the following errors:</h3>
               <ul className="pl-5 mt-2 space-y-1 text-sm text-red-600 list-disc">
-      {errors.user && <li>User information is required</li>}
+                {errors.user && <li>User information is required</li>}
 
-      {/* Leave Duration */}
-      {errors.detailsOfApplication?.leaveDuration?.numberOfDays && (
-        <li>Number of days is required and must be at least 1</li>
-      )}
-      {errors.detailsOfApplication?.leaveDuration?.inclusiveDates && <li>Inclusive dates are required</li>}
-      {errors.detailsOfApplication?.leaveDuration?.commutationRequested &&
-        errors.detailsOfApplication?.leaveDuration?.commutationNotRequested && (
-          <li>Please select either "Commutation Requested" or "Not Requested"</li>
-        )}
+                {/* Leave Duration */}
+                {errors.detailsOfApplication?.leaveDuration?.numberOfDays && (
+                  <li>Number of days is required and must be at least 1</li>
+                )}
+                {errors.detailsOfApplication?.leaveDuration?.inclusiveDates && <li>Inclusive dates are required</li>}
+                {errors.detailsOfApplication?.leaveDuration?.commutationRequested &&
+                  errors.detailsOfApplication?.leaveDuration?.commutationNotRequested && (
+                    <li>Please select either "Commutation Requested" or "Not Requested"</li>
+                  )}
 
-      {/* Leave Credits */}
-      {errors.certifiedLeaveCredit?.asOf && <li>Leave credit certification date is required</li>}
-      {errors.certifiedLeaveCredit?.totalEarnedVacationLeave && (
-        <li>Total earned vacation leave must be a non-negative number</li>
-      )}
-      {errors.certifiedLeaveCredit?.totalEarnedSickLeave && (
-        <li>Total earned sick leave must be a non-negative number</li>
-      )}
-      {errors.certifiedLeaveCredit?.lessThisApplicationVacationLeave && (
-        <li>Vacation leave deduction must be a non-negative number</li>
-      )}
-      {errors.certifiedLeaveCredit?.lessThisApplicationSickLeave && (
-        <li>Sick leave deduction must be a non-negative number</li>
-      )}
+                {/* Leave Credits */}
+                {errors.certifiedLeaveCredit?.asOf && <li>Leave credit certification date is required</li>}
+                {errors.certifiedLeaveCredit?.lessThisApplicationVacationLeave && (
+                  <li>Vacation leave deduction must be a non-negative number</li>
+                )}
+                {errors.certifiedLeaveCredit?.lessThisApplicationSickLeave && (
+                  <li>Sick leave deduction must be a non-negative number</li>
+                )}
 
-      {/* Approval Information */}
-      {errors.date && <li>Date is required</li>}
-      {errors.period && <li>Period is required</li>}
-      {errors.approverName && <li>Approver name is required</li>}
-      {errors.approverDesignation && <li>Approver designation is required</li>}
+                {/* Approval Information */}
+                {errors.date && <li>Date is required</li>}
+                {errors.period && <li>Period is required</li>}
+                {errors.approverName && <li>Approver name is required</li>}
+                {errors.approverDesignation && <li>Approver designation is required</li>}
 
-      {/* Recommendation */}
-      {errors.reccomendation?.disapprovalDetail && <li>Disapproval reason is required when disapproved</li>}
+                {/* Recommendation */}
+                {errors.reccomendation?.disapprovalDetail && <li>Disapproval reason is required when disapproved</li>}
 
-      {/* Approved For */}
-      {errors.approvedFor?.dasyWithPay && <li>Days with pay must be a non-negative number</li>}
-      {errors.approvedFor?.daysWithoutPay && <li>Days without pay must be a non-negative number</li>}
-
-      {/* Type of Leave */}
-      {errors.detailsOfApplication?.typeOfLeave && <li>Please select at least one type of leave</li>}
-    </ul>
+                {/* Type of Leave */}
+                {errors.detailsOfApplication?.typeOfLeave && <li>Please select at least one type of leave</li>}
+              </ul>
             </div>
           )}
           <div className="mb-4">
-          {JSON.stringify(errors)}
             <button
               type="submit"
               className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded hover:bg-blue-700 disabled:bg-blue-400"
@@ -275,15 +300,15 @@ export default function LeaveApplicationForm() {
                 <div className="grid-3">
                   <div className="form-field">
                     <label>3. DATE OF FILING</label>
-                    <p className="field-value">{format(form.getValues('dateOfFiling') ? new Date(form.getValues('dateOfFiling')) : new Date(),  "MMMM dd yyyy" )}</p>
+                    <p className="text-center field-value">{format(form.getValues('dateOfFiling') ? new Date(form.getValues('dateOfFiling')) : new Date(),  "MMMM dd yyyy" )}</p>
                   </div>
                   <div className="form-field">
                     <label>4. POSITION</label>
-                    <p className="field-value">{form.getValues('position')}</p>
+                    <p className="text-center field-value">{form.getValues('position')}</p>
                   </div>
                   <div className="form-field">
                     <label>5. SALARY</label>
-                    <p className="field-value">{form.getValues('salary')}</p>
+                    <p className="text-center field-value">₱ {form.getValues('salary')}</p>
                   </div>
                 </div>
               </div>
@@ -397,7 +422,7 @@ export default function LeaveApplicationForm() {
 
                           <label htmlFor="abroad">Abroad (Specify)</label>
                           <div className="pb-0 mb-0 underline-field">
-                            <input type="text" id="abroad-location" {...register("detailsOfApplication.leaveDetails.vacationDetails.abroadDetail")} />
+                            <input type="text" className="w-full text-center" id="abroad-location" {...register("detailsOfApplication.leaveDetails.vacationDetails.abroadDetail")} />
                           </div>
                         </div>
                       </div>
@@ -408,7 +433,7 @@ export default function LeaveApplicationForm() {
                           <input type="checkbox" id="in-hospital" value="in-hospital" {...register("detailsOfApplication.leaveDetails.sickLeaveDetails.inHospital")} />
                           <label htmlFor="in-hospital">In Hospital (Specify Illness)</label>
                           <div className="underline-field">
-                            <input type="text" className="text-center" {...register("detailsOfApplication.leaveDetails.sickLeaveDetails.inHospitalDetail")} />
+                            <input type="text" className="w-full text-center" {...register("detailsOfApplication.leaveDetails.sickLeaveDetails.inHospitalDetail")} />
                           </div>
                         </div>
                         <div className="checkbox-line">
@@ -485,11 +510,7 @@ export default function LeaveApplicationForm() {
                     </div>
                     <div className="signature-block">
                       <div className="pt-2 pb-0 mb-0 underline-field">
-                        <input
-                          className="w-full text-center signature-name"
-                          type="text"
-                          defaultValue="BARTOLOME DOROJA"
-                        />
+                      <p className="w-full pb-2 text-center uppercase signature-name">{`${userData?.lastName} ${userData?.firstName}`}</p>
                       </div>
                       <p className="signature-label">(Signature of Applicant)</p>
                     </div>
@@ -502,7 +523,7 @@ export default function LeaveApplicationForm() {
                     <div className="flex pt-2 pb-1">
                       <p className="">As of </p>
                       <div className="underline-field">
-                        <input className="w-full text-center" type="text" {...register("certifiedLeaveCredit.asOf")} />
+                        <p></p>
                       </div>
                     </div>
                     <table className="credits-table">
@@ -533,15 +554,19 @@ export default function LeaveApplicationForm() {
                     </table>
                     <div className="officer-signature">
                       <div className="signature-line"></div>
-                      <p className="officer-name">GRACE S. PAGUNSAN</p>
-                      <p className="officer-title">Administrative Officer V</p>
+                      <p className="officer-name">
+                      <input type="text" {...register("leaveCreditApprover")}/>
+                      </p>
+                      <p className="officer-title">
+                        <input type="text" {...register("leaveCreditApproverPosition")}/>
+                      </p>
                     </div>
                   </div>
                   <div className="mt-2 recommendation">
                     <h3>7.B RECOMMENDATION</h3>
                     <div className="px-5 leading-5 recommendation-options">
                       <div className="mt-5 checkbox-line">
-                        <input type="checkbox" id="for-approval" value="approval" {...register("certifiedLeaveCredit.asOf")} />
+                        <input type="checkbox" id="for-approval" value="approval" {...register("reccomendation.approval")} />
                         <label htmlFor="for-approval">For approval</label>
                       </div>
                       <div className="checkbox-line">
@@ -567,16 +592,14 @@ export default function LeaveApplicationForm() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-10 grid-2 border-y-[1px] border-black px-2">
+                <div className="mt-10 grid-2 border-y-[1px] border-black px-2 py-2">
                   <div className="my-2 approval">
                     <h3>7.C APPROVED FOR:</h3>
                     <p className="approval-line">
-                      <input type="text" className="w-[50px] text-center" {...register("approvedFor.dasyWithPay")} /> days
-                      with pay
+                      <p>______days with pay</p>
                     </p>
                     <p className="approval-line">
-                      <input type="text" className="w-[50px] text-center" {...register("approvedFor.daysWithoutPay")} />{" "}
-                      days without pay
+                      <p>______days without pay</p>
                     </p>
                   </div>
                   <div className="my-2 disapproval">
@@ -595,8 +618,15 @@ export default function LeaveApplicationForm() {
 
                 <div className="w-full p-2 text-center">
                   <div className="superintendent-signature">
-                    <p className="officer-name">JUN-NILLOU D. DULPO EdD</p>
-                    <p className="officer-title">Assistant Schools Division Superintendent</p>
+                    <p className="officer-name">
+                      {showStaticView ? <span className="w-full text-center">{form.getValues('specialOrderApprover')} </span>: 
+                        <input type="text" className="w-full text-center"  {...register("specialOrderApprover")}/>
+                      }
+                    </p>
+                    <p className="officer-title">
+                      {showStaticView ? <span className="w-full text-center">{form.getValues('specialOrderApproverPosition')} </span>:
+                        <input type="text" {...register("specialOrderApproverPosition")} />}
+                    </p>
                     <p className="officer-position">Officer In-Charge</p>
                     <p className="office-title">Office of the Schools Division Superintendent</p>
                   </div>

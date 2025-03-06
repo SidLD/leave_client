@@ -9,7 +9,6 @@ const Report = lazy(() => import("@/pages/admin/report/index"))
 const UserReport = lazy(() => import("@/pages/user/report/index"))
 const FormSeven = lazy(() => import("@/pages/admin/form_seven/index"))
 const RegisterPage = lazy(() => import("@/pages/user/register/index"))
-const LoginPage = lazy(() => import("@/pages/user/login/index"))
 const UserSetting = lazy(() => import("@/pages/user/setting/index"))
 
 const Loading = () => <div>Loading...</div>
@@ -21,7 +20,7 @@ const routers = createBrowserRouter(
           path="/"
           element={
             <Suspense fallback={<Loading />}>
-              <LoginPage />
+             < Login />
             </Suspense>
           }
         />
@@ -30,14 +29,6 @@ const routers = createBrowserRouter(
           element={
             <Suspense fallback={<Loading />}>
               <RegisterPage />
-            </Suspense>
-          }
-        />
-         <Route
-          path="/admin/login"
-          element={
-            <Suspense fallback={<Loading />}>
-              <Login />
             </Suspense>
           }
         />

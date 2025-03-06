@@ -24,183 +24,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useNavigate } from "react-router-dom"
+import { LeaveFormType } from "@/types/leaveType"
+import { getLeaveRecords } from "@/lib/api"
 
-// Using the provided LeaveReportType
-export type LeaveReportType = {
-  id?: string
-  detailsOfApplication: {
-    leaveDuration: {
-      inclusiveDates: string[]
-      numberOfDays: number
-      commutationRequested: boolean
-      commutationNotRequested: boolean
-    }
-  }
-
-  certifiedLeaveCredit: {
-    asOf: string
-    totalEarnedVacationLeave: number
-    totalEarnedSickLeave: number
-    lessThisApplicationVacationLeave: number
-    lessThisApplicationSickLeave: number
-  }
-
-  reccomendation: {
-    approval?: boolean
-    disapproval?: boolean
-    disapprovalDetail?: string
-  }
-
-  commutation: {
-    forApproval?: string | null
-    forDisApproval?: string | null
-  }
-
-  approvedFor: {
-    dasyWithPay: number
-    daysWithoutPay: number
-  }
-
-  disapproveFor?: string | null
-  specialOrderNo?: string | null
-  date: string
-  period: string
-  approverName: string
-  approverDesignation: string
-}
-
-// Add status for the table display
-type LeaveReportDisplay = LeaveReportType & {
-  id: string // Make id required for display
-  status: "pending" | "approved" | "declined"
-  updatedAt: string
-}
-
-// Mock function to fetch leave reports
-const fetchLeaveReports = async (): Promise<LeaveReportDisplay[]> => {
-  // This would be replaced with an actual API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: "LR-2025-001",
-          status: "pending",
-          detailsOfApplication: {
-            leaveDuration: {
-              inclusiveDates: ["2025-03-01", "2025-03-02", "2025-03-03", "2025-03-04", "2025-03-05"],
-              numberOfDays: 5,
-              commutationRequested: false,
-              commutationNotRequested: true,
-            },
-          },
-          certifiedLeaveCredit: {
-            asOf: new Date().toISOString(),
-            totalEarnedVacationLeave: 15,
-            totalEarnedSickLeave: 15,
-            lessThisApplicationVacationLeave: 5,
-            lessThisApplicationSickLeave: 0,
-          },
-          reccomendation: {
-            approval: false,
-            disapproval: false,
-          },
-          commutation: {
-            forApproval: null,
-            forDisApproval: null,
-          },
-          approvedFor: {
-            dasyWithPay: 0,
-            daysWithoutPay: 0,
-          },
-          date: new Date().toISOString(),
-          period: "March 1-5, 2025",
-          specialOrderNo: null,
-          approverName: "Jane Smith",
-          approverDesignation: "Principal",
-          updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-        },
-        {
-          id: "LR-2025-002",
-          status: "approved",
-          detailsOfApplication: {
-            leaveDuration: {
-              inclusiveDates: ["2025-03-10", "2025-03-11", "2025-03-12"],
-              numberOfDays: 3,
-              commutationRequested: true,
-              commutationNotRequested: false,
-            },
-          },
-          certifiedLeaveCredit: {
-            asOf: new Date(Date.now() - 86400000 * 5).toISOString(),
-            totalEarnedVacationLeave: 15,
-            totalEarnedSickLeave: 15,
-            lessThisApplicationVacationLeave: 0,
-            lessThisApplicationSickLeave: 3,
-          },
-          reccomendation: {
-            approval: true,
-            disapproval: false,
-          },
-          commutation: {
-            forApproval: "Approved for commutation",
-            forDisApproval: null,
-          },
-          approvedFor: {
-            dasyWithPay: 3,
-            daysWithoutPay: 0,
-          },
-          date: new Date(Date.now() - 86400000 * 3).toISOString(),
-          period: "March 10-12, 2025",
-          specialOrderNo: "SO-2025-042",
-          approverName: "Robert Johnson",
-          approverDesignation: "Superintendent",
-          updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-        },
-        {
-          id: "LR-2025-003",
-          status: "declined",
-          detailsOfApplication: {
-            leaveDuration: {
-              inclusiveDates: ["2025-03-15", "2025-03-16"],
-              numberOfDays: 2,
-              commutationRequested: false,
-              commutationNotRequested: true,
-            },
-          },
-          certifiedLeaveCredit: {
-            asOf: new Date(Date.now() - 86400000 * 7).toISOString(),
-            totalEarnedVacationLeave: 0,
-            totalEarnedSickLeave: 0,
-            lessThisApplicationVacationLeave: 0,
-            lessThisApplicationSickLeave: 0,
-          },
-          reccomendation: {
-            approval: false,
-            disapproval: true,
-            disapprovalDetail: "Insufficient leave credits",
-          },
-          commutation: {
-            forApproval: null,
-            forDisApproval: "Disapproved due to insufficient leave credits",
-          },
-          approvedFor: {
-            dasyWithPay: 0,
-            daysWithoutPay: 0,
-          },
-          disapproveFor: "Insufficient leave credits",
-          date: new Date(Date.now() - 86400000 * 6).toISOString(),
-          period: "March 15-16, 2025",
-          specialOrderNo: "SO-2025-043",
-          approverName: "Susan Brown",
-          approverDesignation: "HR Director",
-          updatedAt: new Date(Date.now() - 86400000 * 6).toISOString(),
-        },
-      ])
-    }, 200) // Fast loading
-  })
-}
-
-// Mock function to delete a leave report
 const deleteLeaveReport = async (id: string): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -214,7 +40,7 @@ export default function LeaveReportsTable() {
   const router = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
-  const [filteredReports, setFilteredReports] = useState<LeaveReportDisplay[]>([])
+  const [filteredReports, setFilteredReports] = useState<LeaveFormType[]>([])
 
   // Using React Query for data fetching with optimized settings
   const {
@@ -224,7 +50,7 @@ export default function LeaveReportsTable() {
     refetch,
   } = useQuery({
     queryKey: ["leaveReports"],
-    queryFn: fetchLeaveReports,
+    queryFn: () => getLeaveRecords({}).then(data => data.data),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   })
@@ -257,19 +83,19 @@ export default function LeaveReportsTable() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
+      case "PENDING":
         return (
           <Badge variant="outline" className="text-yellow-800 bg-yellow-100 border-yellow-300">
             Pending
           </Badge>
         )
-      case "approved":
+      case "APPROVED":
         return (
           <Badge variant="outline" className="text-green-800 bg-green-100 border-green-300">
             Approved
           </Badge>
         )
-      case "declined":
+      case "REJECTED":
         return (
           <Badge variant="outline" className="text-red-800 bg-red-100 border-red-300">
             Declined
@@ -279,14 +105,14 @@ export default function LeaveReportsTable() {
         return <Badge variant="outline">Unknown</Badge>
     }
   }
-
-  const getRecommendationStatus = (report: LeaveReportDisplay) => {
+console.log(reports)
+  const getRecommendationStatus = (report: LeaveFormType) => {
     if (report.reccomendation.approval) return "Approved"
     if (report.reccomendation.disapproval) return "Disapproved"
     return "Pending"
   }
 
-  const getCommutationStatus = (report: LeaveReportDisplay) => {
+  const getCommutationStatus = (report: LeaveFormType) => {
     if (report.commutation.forApproval) return "Approved"
     if (report.commutation.forDisApproval) return "Disapproved"
     if (report.detailsOfApplication.leaveDuration.commutationRequested) return "Requested"
@@ -389,12 +215,12 @@ export default function LeaveReportsTable() {
                   </TableRow>
                 ) : (
                   filteredReports.map((report) => (
-                    <TableRow key={report.id}>
-                      <TableCell className="font-medium">{report.id}</TableCell>
+                    <TableRow key={report._id}>
+                      <TableCell className="font-medium">{report._id}</TableCell>
                       <TableCell>{report.period}</TableCell>
                       <TableCell>{report.detailsOfApplication.leaveDuration.numberOfDays}</TableCell>
                       <TableCell>{report.specialOrderNo || "—"}</TableCell>
-                      <TableCell>{getStatusBadge(report.status)}</TableCell>
+                      <TableCell>{getStatusBadge(report.status as string)}</TableCell>
                       <TableCell>{getRecommendationStatus(report)}</TableCell>
                       <TableCell>{getCommutationStatus(report)}</TableCell>
                       <TableCell className="text-right">
@@ -421,7 +247,7 @@ export default function LeaveReportsTable() {
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <h3 className="font-semibold">Report ID</h3>
-                                      <p>{report.id}</p>
+                                      <p>{report._id}</p>
                                     </div>
                                     <div>
                                       <h3 className="font-semibold">Status</h3>
@@ -447,7 +273,7 @@ export default function LeaveReportsTable() {
                                     </div>
                                     <div>
                                       <h3 className="font-semibold">Date</h3>
-                                      <p>{format(new Date(report.date), "MMMM d, yyyy")}</p>
+                                      <p>{format(new Date(report.date as string), "MMMM d, yyyy")}</p>
                                     </div>
                                   </div>
 
@@ -476,52 +302,11 @@ export default function LeaveReportsTable() {
                                     <h3 className="font-semibold">Commutation</h3>
                                     <p>{getCommutationStatus(report)}</p>
                                   </div>
-
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <h3 className="font-semibold">Days with Pay</h3>
-                                      <p>{report.approvedFor.dasyWithPay}</p>
-                                    </div>
-                                    <div>
-                                      <h3 className="font-semibold">Days without Pay</h3>
-                                      <p>{report.approvedFor.daysWithoutPay}</p>
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <h3 className="font-semibold">
-                                      Leave Credits as of{" "}
-                                      {format(new Date(report.certifiedLeaveCredit.asOf), "MMM d, yyyy")}
-                                    </h3>
-                                    <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
-                                      <div className="font-medium">Type</div>
-                                      <div className="font-medium">Vacation</div>
-                                      <div className="font-medium">Sick</div>
-
-                                      <div>Total Earned</div>
-                                      <div>{report.certifiedLeaveCredit.totalEarnedVacationLeave}</div>
-                                      <div>{report.certifiedLeaveCredit.totalEarnedSickLeave}</div>
-
-                                      <div>Less this Application</div>
-                                      <div>{report.certifiedLeaveCredit.lessThisApplicationVacationLeave}</div>
-                                      <div>{report.certifiedLeaveCredit.lessThisApplicationSickLeave}</div>
-
-                                      <div>Balance</div>
-                                      <div>
-                                        {report.certifiedLeaveCredit.totalEarnedVacationLeave -
-                                          report.certifiedLeaveCredit.lessThisApplicationVacationLeave}
-                                      </div>
-                                      <div>
-                                        {report.certifiedLeaveCredit.totalEarnedSickLeave -
-                                          report.certifiedLeaveCredit.lessThisApplicationSickLeave}
-                                      </div>
-                                    </div>
-                                  </div>
                                 </div>
                                 <div className="flex justify-end">
                                   <Button
                                     variant="outline"
-                                    onClick={() => handleDownload(report.id)}
+                                    onClick={() => handleDownload(report._id as string)}
                                     className="flex items-center gap-2"
                                   >
                                     <Download className="w-4 h-4" />
@@ -531,14 +316,14 @@ export default function LeaveReportsTable() {
                               </DialogContent>
                             </Dialog>
 
-                            {report.status === "pending" && (
-                              <DropdownMenuItem onClick={() => handleEdit(report.id)}>
+                            {report.status === "PENDING" && (
+                              <DropdownMenuItem onClick={() => handleEdit(report._id as string)}>
                                 <Edit className="w-4 h-4 mr-2" />
                                 Edit
                               </DropdownMenuItem>
                             )}
 
-                            {report.status === "declined" && (
+                            {report.status === "REJECTED" && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
@@ -556,7 +341,7 @@ export default function LeaveReportsTable() {
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction
-                                      onClick={() => handleDelete(report.id)}
+                                      onClick={() => handleDelete(report._id as string)}
                                       className="bg-red-600 hover:bg-red-700"
                                     >
                                       Delete
@@ -566,7 +351,7 @@ export default function LeaveReportsTable() {
                               </AlertDialog>
                             )}
 
-                            <DropdownMenuItem onClick={() => handleDownload(report.id)}>
+                            <DropdownMenuItem onClick={() => handleDownload(report._id as string)}>
                               <Download className="w-4 h-4 mr-2" />
                               Download PDF
                             </DropdownMenuItem>

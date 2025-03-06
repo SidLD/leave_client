@@ -13,6 +13,7 @@ import type { TeacherLoginType } from "@/types/userType"
 import { ClapperboardIcon as ChalkboardTeacher, Eye, EyeOff } from "lucide-react"
 import { useStore } from "@/store/app.store"
 import { useMutation } from "@tanstack/react-query"
+import { useNavigate } from "react-router-dom"
 
 const teacherLoginSchema = z.object({
   username: z.string().min(1, "Employee ID is required"),
@@ -36,6 +37,7 @@ export default function TeacherLoginView() {
       toast({ title: "Welcome User" })
     },
   })
+  const navigator = useNavigate()
   const onSubmit = async (data: TeacherLoginType) => {
     try {
       const response = await createMutation.mutateAsync(data)
@@ -64,7 +66,7 @@ export default function TeacherLoginView() {
       <div className="items-center justify-center hidden w-1/2 bg-green-600 lg:flex">
         <div className="text-center">
           <ChalkboardTeacher className="w-32 h-32 mx-auto text-white" />
-          <h1 className="mt-4 text-4xl font-bold text-white">Admin Portal</h1>
+          <h1 className="mt-4 text-4xl font-bold text-white">Leave Portal</h1>
           <p className="mt-2 text-xl text-blue-100">Empowering educators, inspiring minds</p>
         </div>
       </div>
@@ -73,7 +75,7 @@ export default function TeacherLoginView() {
       <div className="flex items-center justify-center w-full px-6 py-12 lg:w-1/2">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center text-green-600">Admin Login</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center text-green-600">Leave Login</CardTitle>
             <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -120,9 +122,17 @@ export default function TeacherLoginView() {
                 className="w-full px-4 py-2 font-semibold text-white transition duration-300 ease-in-out transform bg-green-600 rounded-md hover:bg-green-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Logging in..." : "Login as Admin"}
+                {isSubmitting ? "Logging in..." : "Log in"}
               </Button>
             </CardFooter>
+                  <div className="p-4 text-center ">
+                  Don't have an account?{" "}
+                  <Button onClick={() => {
+                      navigator('/register')
+                  }} className=" hover:underline">
+                    Register here
+              </Button>
+            </div>
           </form>
         </Card>
       </div>
