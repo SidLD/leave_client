@@ -30,6 +30,7 @@ export default function AdminDashboard() {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
   const [approveNote, setApproveNote] = useState("")
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const { toast } = useToast()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -42,8 +43,7 @@ export default function AdminDashboard() {
 
   // Mutation for updating leave status
   const updateStatusMutation = useMutation({
-    mutationFn: (data: { id: string; status: string; note?: string }) =>
-    updateLeaveStatus(data.id, data.status),
+    mutationFn: (data: { id: string; status: string; note?: string }) => updateLeaveStatus(data.id, data.status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leaveRecords"] })
       toast({
@@ -92,6 +92,10 @@ export default function AdminDashboard() {
     })
   }
 
+  const handleUserSelection = (userId: string) => {
+    setSelectedUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
@@ -133,6 +137,7 @@ export default function AdminDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[50px]">Select</TableHead>
                   <TableHead>Employee</TableHead>
                   <TableHead>Leave Type</TableHead>
                   <TableHead>Duration</TableHead>
@@ -146,6 +151,16 @@ export default function AdminDashboard() {
                 {leaveRecords && leaveRecords.length > 0 ? (
                   leaveRecords.map((leave) => (
                     <TableRow key={leave._id}>
+                      <TableCell>
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 border-gray-300 rounded text-primary focus:ring-primary"
+                            checked={selectedUsers.includes(leave.user._id as string)}
+                            onChange={() => handleUserSelection(leave.user._id as string)}
+                          />
+                        </div>
+                      </TableCell>
                       <TableCell className="font-medium">
                         {leave.user.firstName} {leave.user.lastName}
                       </TableCell>
@@ -191,13 +206,27 @@ export default function AdminDashboard() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-4 text-center">
+                    <TableCell colSpan={8} className="py-4 text-center">
                       No leave records found
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
+          )}
+          {leaveRecords && leaveRecords.length > 0 && selectedUsers.length > 0 && (
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={() => {
+                  // Here you can pass the selectedUsers to wherever you need
+                  console.log("Selected user IDs:", selectedUsers)
+                  // Example: navigate to another page with the selected users
+                  // navigate(`/some-path?users=${selectedUsers.join(',')}`)
+                }}
+              >
+                Process Selected ({selectedUsers.length})
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
