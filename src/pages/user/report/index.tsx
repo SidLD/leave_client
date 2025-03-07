@@ -11,7 +11,7 @@ import "./styles/form.css"
 import { leaveFormSchema } from "@/types/leaveType"
 import type { IUser } from "@/types/userType"
 import { format } from "date-fns"
-import { createLeaveRecord, getUserSetting } from "@/lib/api"
+import { createLeaveRecord, getUserLeave, getUserSetting } from "@/lib/api"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
@@ -27,9 +27,16 @@ export default function LeaveApplicationForm() {
   const {toast} = useToast()
 
   const { data: userData, isLoading: userLoading } = useQuery<IUser | null>({
-    queryKey: ["userSettings"],
-    queryFn: () => type == 'new' ? getUserSetting(id as string).then(data => data.data) : null
+    queryKey: ["userSettings", id],
+    queryFn:  () => getUserSetting(id as string).then(data => data.data),
+    enabled: type == 'new'
   })
+  const { data: leaveData } = useQuery<LeaveFormValues | null>({
+    queryKey: ["userLeave", id],
+    queryFn: () => getUserLeave(id as string).then(data => data.data),
+    enabled: type == 'application'
+  })
+
 
   const form = useForm<LeaveFormValues>({
     resolver: zodResolver(leaveFormSchema),
@@ -122,7 +129,10 @@ export default function LeaveApplicationForm() {
   useEffect(() => {
     const init = async () => {
       if(type == 'application'){
-        
+        if(leaveData){
+          console.log(type, 'sds')
+          form.reset(leaveData)
+        }
       }
       else if(userData){
         setUserDetail(userData);
@@ -179,13 +189,8 @@ export default function LeaveApplicationForm() {
       }
     }
     init()
-  }, [userData])
+  }, [userData,leaveData])
 
-  useEffect(() => {
-    console.log(errors)
-  }, [errors])
-
-  console.log(errors)
   return (
     <main className="min-h-screen p-4 md:p-8 bg-gray-50">
       <div className="max-w-[8.5in] mx-auto">

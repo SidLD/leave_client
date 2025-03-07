@@ -11,12 +11,14 @@ import { Badge } from "@/components/ui/badge"
 import { PlusCircle, Search, Edit, Trash2, Filter, RefreshCw } from "lucide-react"
 import { getLeaveRecords } from "@/lib/api"
 import { LeaveFormType, typeOfLeave } from "@/types/leaveType"
+import { useStore } from "@/store/app.store"
 
 
 export default function LeaveDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [filteredApplications, setFilteredApplications] = useState<LeaveFormType[]>([])
+  const {getUserInfo} = useStore()
 
   // Use React Query to fetch data
   const {
@@ -97,17 +99,7 @@ export default function LeaveDashboard() {
               <CardDescription className="text-green-600">Manage employee leave applications</CardDescription>
             </div>
             <div className="flex w-full gap-2 sm:w-auto">
-              <Button
-                variant="outline"
-                size="icon"
-                className="text-green-600 border-green-200 hover:bg-green-50"
-                onClick={() => refetch()}
-                disabled={isLoading}
-              >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-                <span className="sr-only">Refresh</span>
-              </Button>
-              <a href="/create-leave" className="w-full sm:w-auto">
+              <a href={`/user/report/new/${getUserInfo().id}`} className="w-full sm:w-auto">
                 <Button className="w-full bg-green-600 hover:bg-green-700">
                   <PlusCircle className="w-4 h-4 mr-2" />
                   Create New Application
@@ -205,7 +197,7 @@ export default function LeaveDashboard() {
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             {application.status === "PENDING" && (
-                              <a href={`/edit-leave/${application._id}`}>
+                              <a href={`/user/report/application/${application._id}`}>
                                 <Button
                                   variant="outline"
                                   size="sm"

@@ -72,6 +72,10 @@ export const getUserLeaves = (data: any) => {
   return axios.get(`${import.meta.env.VITE_API_URL}/user-leaves`, { params: data, ...jsonDataHeader()});
 };
 
+export const getUserLeave = (id: string) => {
+  return axios.get(`${import.meta.env.VITE_API_URL}/user-leave/${id}`, { ...jsonDataHeader()});
+};
+
 export const createUserLeave = (data: any) => {
   return axios.post(`${import.meta.env.VITE_API_URL}/user-leave`, data, jsonDataHeader());
 };
@@ -95,24 +99,24 @@ export const batchUpdateUserLeave = (data: any) => {
 
 // Fetch Leave Records
 export const getLeaveRecords = (data: any) => {
-  return axios.get(`${import.meta.env.VITE_API_URL}/userleaves`, { params: data, ...jsonDataHeader() });
+  return axios.get(`${import.meta.env.VITE_API_URL}/user-leaves`, { params: data, ...jsonDataHeader() });
 };
 export const getLeaveRecord = (data: any) => {
-  return axios.get(`${import.meta.env.VITE_API_URL}/userleave`, { params: data, ...jsonDataHeader() });
+  return axios.get(`${import.meta.env.VITE_API_URL}/user-leave`, { params: data, ...jsonDataHeader() });
 };
 // Create a Leave Record
 export const createLeaveRecord = (data: any) => {
-  return axios.post(`${import.meta.env.VITE_API_URL}/userleave`, data, jsonDataHeader());
+  return axios.post(`${import.meta.env.VITE_API_URL}/user-leave`, data, jsonDataHeader());
 };
 
 // Update a Leave Record
 export const updateLeaveRecord = (leaveId: string, data: any) => {
-  return axios.put(`${import.meta.env.VITE_API_URL}/userleave/${leaveId}`, data, jsonDataHeader());
+  return axios.put(`${import.meta.env.VITE_API_URL}/user-leave/${leaveId}`, data, jsonDataHeader());
 };
 
 // Delete a Leave Record
 export const deleteLeaveRecord = (leaveId:string) => {
-  return axios.delete(`${import.meta.env.VITE_API_URL}/userleave/${leaveId}`, { ...jsonDataHeader() });
+  return axios.delete(`${import.meta.env.VITE_API_URL}/user-leave/${leaveId}`, { ...jsonDataHeader() });
 };
 
 // Batch Create Leave Records
