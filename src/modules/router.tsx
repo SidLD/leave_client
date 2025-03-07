@@ -3,9 +3,9 @@ import { lazy, Suspense } from "react"
 import { PrivateLayout, PublicLayout } from "./module"
 
 const Login = lazy(() => import("@/pages/login/index"))
-// const DashboardClient = lazy(() => import("@/pages/admin/dashboard/index"))
+const DashboardClient = lazy(() => import("@/pages/admin/dashboard/index"))
 const Dashboard = lazy(() => import("@/pages/user/dashboard/index"))
-const Report = lazy(() => import("@/pages/admin/report/index"))
+const AdminReport = lazy(() => import("@/pages/admin/form_six/index"))
 const UserReport = lazy(() => import("@/pages/user/report/index"))
 const FormSeven = lazy(() => import("@/pages/admin/form_seven/index"))
 const RegisterPage = lazy(() => import("@/pages/user/register/index"))
@@ -40,19 +40,15 @@ const routers = createBrowserRouter(
             index
             element={
               <Suspense fallback={<Loading />}>
-                {/* <DashboardClient /> */}
-                <div>
-                  Still Work in Progreess
-                </div>
+                <DashboardClient />
               </Suspense>
             }
           />
-
           <Route
-            path="report/:userId"
+            path="report/:type/:id"
             element={
               <Suspense fallback={<Loading />}>
-                <Report />
+                <AdminReport />
               </Suspense>
             }
           />

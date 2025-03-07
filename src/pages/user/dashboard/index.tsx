@@ -146,7 +146,7 @@ export default function LeaveDashboard() {
             ) : isError ? (
               <div className="flex items-center justify-center h-64">
                 <div className="flex flex-col items-center gap-2 text-red-500">
-                  <p className="font-medium">Error loading data</p>
+                  <p className="font-medium">No Data</p>
                   <Button
                     variant="outline"
                     onClick={() => refetch()}

@@ -35,6 +35,12 @@ export default function DashboardLayout() {
       roles: ['USER']
     },
     {
+      link:`/admin/report`,
+      icon: <Settings2 size={20} />,
+      title: "Form 6",
+      roles: ['ADMIN']
+    },
+    {
       link:'/user/setting',
       icon: <Settings2 size={20} />,
       title: "Setting",

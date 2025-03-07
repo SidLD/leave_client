@@ -92,6 +92,7 @@ export type LeaveFormType = {
 };
 
 export const leaveFormSchema = z.object({
+  _id: z.string().optional(),
   officeDepartment: z.string(),
   user: z.string(), 
   dateOfFiling: z.string(),
@@ -179,7 +180,9 @@ export const leaveFormSchema = z.object({
   leaveCreditApprover: z.string(),
   leaveCreditApproverPosition: z.string(),
   specialOrderApprover: z.string(),
-  specialOrderApproverPosition: z.string()
+  specialOrderApproverPosition: z.string(),
+
+  status : z.string().optional()
 });
 
 export type LeaveReportType = {
