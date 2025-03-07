@@ -1,6 +1,23 @@
 import { z } from "zod";
 import { IUser } from "./userType";
 
+export type typeOfLeave = {
+  vacation: boolean;
+  mandatory: boolean;
+  sick: boolean;
+  maternity: boolean;
+  paternity: boolean;
+  specialPrivilege: boolean;
+  soloParent: boolean;
+  study: boolean;
+  vawc: boolean;
+  rehabilitation: boolean;
+  women: boolean;
+  emergency: boolean;
+  adoption: boolean;
+  other?: string | null;
+}
+
 export type LeaveFormType = {
   _id?: string;
   officeDepartment: string;
@@ -10,22 +27,7 @@ export type LeaveFormType = {
   salary: number;
 
   detailsOfApplication: {
-    typeOfLeave?: {
-      vacation: boolean;
-      mandatory: boolean;
-      sick: boolean;
-      maternity: boolean;
-      paternity: boolean;
-      specialPrivilege: boolean;
-      soloParent: boolean;
-      study: boolean;
-      vawc: boolean;
-      rehabilitation: boolean;
-      women: boolean;
-      emergency: boolean;
-      adoption: boolean;
-      other?: string | null;
-    };
+    typeOfLeave?: typeOfLeave;
     leaveDetails?: {
       vacationDetails?: {
         withinPH: boolean;
