@@ -26,7 +26,6 @@ export const PrivateLayout = () => {
     if(getToken() && getExpiration() * 1000 > Date.now()){
         return <DashboardLayout />
     }else{
-        alert("Session Expired")
         return <Navigate to={"/admin-login"} />;
     }
 }
@@ -35,7 +34,6 @@ export const PrivatePrintLayout = () => {
     const { getToken, getExpiration, clear} = useStore()
     if (!getToken() || getExpiration() * 1000 <= Date.now()) {
         clear()
-        alert("Session Expired")
         return <Navigate to={"/admin-login"} />;
         
     }else{

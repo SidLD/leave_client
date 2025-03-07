@@ -49,7 +49,9 @@ export default function DashboardLayout() {
   ]
   const handleLogout = () => {
     clear()
-    navigate('/login')
+    setTimeout(() => {
+      navigate('/login')
+    }, 200)
   };
 
   const toggleMenu = () => {

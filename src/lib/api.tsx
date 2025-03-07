@@ -73,8 +73,9 @@ export const getAllLeaveRecords = (data: any) => {
 };
 
 export const updateLeaveStatus = (id: string, data: any) => {
-  return axios.put(`${import.meta.env.VITE_API_URL}/user-leave/${id}`, data, jsonDataHeader());
+  return axios.put(`${import.meta.env.VITE_API_URL}/user-leave/${id}/status/`, data, jsonDataHeader());
 };
+
 
 export const getUserLeave = (id: string) => {
   return axios.get(`${import.meta.env.VITE_API_URL}/user-leave/${id}`, { ...jsonDataHeader()});

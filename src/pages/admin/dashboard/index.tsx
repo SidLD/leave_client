@@ -43,7 +43,7 @@ export default function AdminDashboard() {
 
   // Mutation for updating leave status
   const updateStatusMutation = useMutation({
-    mutationFn: (data: { id: string; status: string; note?: string }) => updateLeaveStatus(data.id, data.status),
+    mutationFn: (data: { id: string; status: string; remarks?: string }) => updateLeaveStatus(data.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leaveRecords"] })
       toast({
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     updateStatusMutation.mutate({
       id: selectedLeave._id as string,
       status: "APPROVED",
-      note: approveNote,
+      remarks: approveNote,
     })
   }
 
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
     updateStatusMutation.mutate({
       id: selectedLeave._id as string,
       status: "REJECTED",
-      note: rejectReason,
+      remarks: rejectReason,
     })
   }
 
@@ -104,13 +104,13 @@ export default function AdminDashboard() {
             Pending
           </Badge>
         )
-      case "approved":
+      case "APPROVED":
         return (
           <Badge variant="outline" className="text-green-800 bg-green-100">
             Approved
           </Badge>
         )
-      case "rejected":
+      case "REJECTED":
         return (
           <Badge variant="outline" className="text-red-800 bg-red-100">
             Rejected
