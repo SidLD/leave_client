@@ -15,6 +15,7 @@ import { createLeaveRecord, getUserLeave, getUserSetting, updateLeaveRecord } fr
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
+import logo from '@/assets/logo.jpg'
 
 type LeaveFormValues = z.infer<typeof leaveFormSchema>
 
@@ -377,7 +378,7 @@ export default function LeaveApplicationForm() {
       {/* Logo at the top */}
       <div className="flex justify-center w-full py-4">
         <img
-          src={"/placeholder.svg"}
+          src={logo || "/placeholder.svg"}
           alt="Department of Education Logo"
           width={100}
           height={100}

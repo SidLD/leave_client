@@ -15,6 +15,7 @@ import { createLeaveRecord, getUserLeave, updateLeaveRecord } from "@/lib/api"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
+import logo from '@/assets/logo.jpg'
 
 type LeaveFormValues = z.infer<typeof leaveFormSchema>
 
@@ -106,7 +107,6 @@ export default function LeaveApplicationForm() {
 
   const generatePDF = async () => {
     if (!formRef.current) {
-      console.error("Form reference not found");
       setShowStaticView(false);
       return;
     }
@@ -263,7 +263,7 @@ export default function LeaveApplicationForm() {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           {Object.keys(errors).length > 0 && (
-            <div className="p-3 mb-4 border border-red-200 rounded bg-red-50">
+            <div className={`${showStaticView ? 'p-0': 'p-3'} mb-4 border border-red-200 rounded bg-red-50`}>
               <h3 className="font-medium text-red-600">Please correct the following errors:</h3>
               <ul className="pl-5 mt-2 space-y-1 text-sm text-red-600 list-disc">
                 {errors.user && <li>User information is required</li>}
@@ -321,7 +321,7 @@ export default function LeaveApplicationForm() {
           <div ref={formRef} className="p-0 bg-white rounded-lg shadow-lg form-container">
             <div className="flex justify-center w-full py-4">
                 <img
-                src={"/placeholder.svg"}
+                src={logo || "/placeholder.svg"}
                 alt="Department of Education Logo"
                 width={100}
                 height={100}

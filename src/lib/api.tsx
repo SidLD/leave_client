@@ -28,6 +28,14 @@ export const updateUser = (data:any) => {
   });
 };
 
+export const updateUserStatus = (data:any) => {
+  return axios.put(`${import.meta.env.VITE_API_URL}/users/status`,  data, jsonDataHeader())
+};
+
+export const deleteUsers = (data:any) => {
+  return axios.put(`${import.meta.env.VITE_API_URL}/users`,  data, jsonDataHeader())
+};
+
 export const getUsers = (data:any) => {
     return axios.get(`${import.meta.env.VITE_API_URL}/users`, {
         params:data, ...jsonDataHeader()

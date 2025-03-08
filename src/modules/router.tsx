@@ -10,6 +10,7 @@ const UserReport = lazy(() => import("@/pages/user/report/index"))
 const FormSeven = lazy(() => import("@/pages/admin/form_seven/index"))
 const RegisterPage = lazy(() => import("@/pages/user/register/index"))
 const UserSetting = lazy(() => import("@/pages/user/setting/index"))
+const UserPage = lazy(() => import("@/pages/admin/user/index"))
 
 const Loading = () => <div>Loading...</div>
 const routers = createBrowserRouter(
@@ -57,6 +58,22 @@ const routers = createBrowserRouter(
             element={
               <Suspense fallback={<Loading />}>
                 <FormSeven />
+              </Suspense>
+            }
+          />
+              <Route
+            path="setting"
+            element={
+              <Suspense fallback={<Loading />}>
+                <UserSetting />
+              </Suspense>
+            }
+          />
+              <Route
+            path="user"
+            element={
+              <Suspense fallback={<Loading />}>
+                <UserPage />
               </Suspense>
             }
           />
