@@ -33,7 +33,7 @@ export const updateUserStatus = (data:any) => {
 };
 
 export const deleteUsers = (data:any) => {
-  return axios.put(`${import.meta.env.VITE_API_URL}/users`,  data, jsonDataHeader())
+  return axios.delete(`${import.meta.env.VITE_API_URL}/users`, {data,...jsonDataHeader()})
 };
 
 export const fetchUsers = (data:any) => {

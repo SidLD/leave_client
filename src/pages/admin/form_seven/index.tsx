@@ -19,25 +19,38 @@ import { UseStore } from "@/store/app.store"
 
 export default function PayrollReport() {
   const [selectedMonth, setSelectedMonth] = useState<string>(months[0])
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString())
   const [editableData, setEditableData] = useState<PayrollPeriod | null>(null)
-  const {getUsers} = UseStore()
-  
+  const [users, setUsers] = useState<string[]>([])
+  const { getUsers } = UseStore()
+
+  useEffect(() => {
+    setUsers(getUsers())
+    console.log(getUsers(), users)
+  }, [getUsers])
+
   const { data, isLoading, error } = useQuery<PayrollPeriod, Error>({
-    queryKey: ["payroll", selectedMonth, getUsers],
-    queryFn: () => fetchUserPayoll({
-      month: selectedMonth,
-      users: getUsers()
-    }).then(data => data.data),
+    queryKey: ["payroll", selectedMonth, selectedYear, setUsers, getUsers, users],
+    queryFn: () =>
+      fetchUserPayoll({
+        month: new Date(`${selectedMonth} 1, ${new Date().getFullYear()}`).getMonth() + 1,
+        year: selectedYear,
+        users: users,
+      }).then((data) => data.data),
   })
 
   useEffect(() => {
     if (data) {
-      setEditableData(data);
+      setEditableData(data)
     }
-  }, [data]) 
+  }, [data])
 
   const handleMonthChange = (value: string) => {
     setSelectedMonth(value)
+  }
+
+  const handleYearChange = (value: string) => {
+    setSelectedYear(value)
   }
 
   const handleEmployeeUpdate = (employeeId: string, field: string, value: string) => {
@@ -105,10 +118,29 @@ export default function PayrollReport() {
               </Select>
             </div>
 
+            <div className="w-40">
+              <label className="block mb-2 text-sm font-medium">Select Year</label>
+              <Select value={selectedYear} onValueChange={handleYearChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...Array(5)].map((_, i) => {
+                    const year = (new Date().getFullYear() - 2 + i).toString()
+                    return (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
             {editableData && (
               <PDFDownloadLink
                 document={<PayrollPDF data={editableData} />}
-                fileName={`payroll-${selectedMonth.toLowerCase()}-${editableData.year}.pdf`}
+                fileName={`payroll-${selectedMonth.toLowerCase()}-${selectedYear}.pdf`}
                 className="mt-6"
               >
                 {({ loading }) => (
@@ -134,7 +166,9 @@ export default function PayrollReport() {
             <h2 className="text-xl font-bold text-center">Department of Education</h2>
             <h3 className="text-center">Implementation of Programs for Basic Education</h3>
             <h3 className="text-center">Monthly Payroll Worksheet & Report of Service</h3>
-            <h3 className="text-center">For the Month of {selectedMonth} 2024</h3>
+            <h3 className="text-center">
+              For the Month of {selectedMonth} {selectedYear}
+            </h3>
 
             {editableData && (
               <div className="mt-4 space-y-4">

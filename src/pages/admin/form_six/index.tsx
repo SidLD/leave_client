@@ -151,7 +151,7 @@ export default function LeaveApplicationForm() {
             _id: leaveData._id,
             officeDepartment: leaveData.officeDepartment || "",
             user: leaveData.user._id as string,
-            dateOfFiling: new Date().toString(),
+            dateOfFiling: new Date(),
             position: leaveData.position || "NONE",
             salary: leaveData.salary || 0,
 

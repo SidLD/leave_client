@@ -95,7 +95,7 @@ export const leaveFormSchema = z.object({
   _id: z.string().optional(),
   officeDepartment: z.string(),
   user: z.string(), 
-  dateOfFiling: z.string(),
+  dateOfFiling: z.date(),
   position: z.string(),
   salary: z.number().nonnegative(),
 

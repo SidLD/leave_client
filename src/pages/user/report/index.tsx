@@ -16,6 +16,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
 import logo from '@/assets/logo.jpg'
+import { Toaster } from "@/components/ui/toaster"
 
 type LeaveFormValues = z.infer<typeof leaveFormSchema>
 
@@ -51,23 +52,24 @@ export default function LeaveApplicationForm() {
 
   const leaveApplication = useMutation({
     mutationKey: ['createLeaveApplication'],
-    mutationFn: (data:LeaveFormValues) => createLeaveRecord(data),
+    mutationFn: (data:LeaveFormValues) => createLeaveRecord(data).then(data => data.data),
     onSuccess: () => {
       toast({
         title: "Success",
         description: "You have successfully Submitted leave",
+        className: 'bg-gray-200'
       })
     },
-    onError: (error: Error) => {
-      console.error(error)
+    onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "An error occurred",
-        description: error.message || "Something went wrong while applying leave",
+        description: error.response.data.error || "Something went wrong while applying leave",
+         className: 'bg-gray-200'
       })
     },
   })
-
+ 
   const updateLeaveApplication = useMutation({
     mutationKey: ['updateLeaveApplication'],
     mutationFn: (data:LeaveFormValues) => updateLeaveRecord(data._id as string, data),
@@ -75,14 +77,15 @@ export default function LeaveApplicationForm() {
       toast({
         title: "Success",
         description: "You have successfully Submitted leave",
+         className: 'bg-gray-200'
       })
     },
-    onError: (error: Error) => {
-      console.error(error)
+    onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "An error occurred",
-        description: error.message || "Something went wrong while applying leave",
+        description: error.response.data.error  || "Something went wrong while applying leave",
+        className: 'bg-gray-200'
       })
     },
   })
@@ -91,12 +94,11 @@ export default function LeaveApplicationForm() {
     try {
       setSubmitError(null)
       if(type == 'new'){
-        leaveApplication.mutateAsync(data)
+        leaveApplication.mutate(data)
       }
       if(type == 'application'){
-        updateLeaveApplication.mutateAsync(data)
+        updateLeaveApplication.mutate(data)
       }
-      handleDownloadPDF()
     } catch (error) {
       console.error("Error submitting form:", error)
       setSubmitError(error instanceof Error ? error.message : "An error occurred while submitting the form")
@@ -157,7 +159,7 @@ export default function LeaveApplicationForm() {
             _id: leaveData._id,
             officeDepartment: leaveData.officeDepartment || "",
             user: leaveData.user._id as string,
-            dateOfFiling: new Date().toString(),
+            dateOfFiling: new Date(),
             position: leaveData.position || "NONE",
             salary: leaveData.salary || 0,
 
@@ -287,7 +289,7 @@ export default function LeaveApplicationForm() {
           period: '',
           
         }),
-        form.setValue('dateOfFiling', new Date().toString())
+        form.setValue('dateOfFiling', new Date())
         form.setValue('position', userData.position || 'NONE')
         form.setValue('salary', userData.salary || 0)
         form.setValue('user', id as string);
@@ -307,6 +309,7 @@ export default function LeaveApplicationForm() {
   return (
     <main className="min-h-screen p-4 md:p-8 bg-gray-50">
       <div className="max-w-[8.5in] mx-auto">
+      <Toaster />
         <div className="flex justify-end mb-4">
           <button
             onClick={handleDownloadPDF}
