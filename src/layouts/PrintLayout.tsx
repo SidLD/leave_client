@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Home, Users, FileInput, LogOut, Menu, X, Settings2 } from "lucide-react";
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 
 export default function PrintLayout() {
-  const {clear, getRole} = useStore()
+  const {clear, getRole} = UseStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate()
   const links = [

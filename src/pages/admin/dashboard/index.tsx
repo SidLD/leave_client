@@ -137,7 +137,7 @@ export default function AdminDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">Select</TableHead>
+                  {/* <TableHead className="w-[50px]">Select</TableHead> */}
                   <TableHead>Employee</TableHead>
                   <TableHead>Leave Type</TableHead>
                   <TableHead>Duration</TableHead>
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
                 {leaveRecords && leaveRecords.length > 0 ? (
                   leaveRecords.map((leave) => (
                     <TableRow key={leave._id}>
-                      <TableCell>
+                      {/* <TableCell>
                         <div className="flex items-center justify-center">
                           <input
                             type="checkbox"
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
                             onChange={() => handleUserSelection(leave.user._id as string)}
                           />
                         </div>
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell className="font-medium">
                         {leave.user.firstName} {leave.user.lastName}
                       </TableCell>

@@ -2,26 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Check, X, Search, Trash2 } from "lucide-react"
-import { deleteUsers, getUsers, updateUserStatus } from "@/lib/api"
+import { Check, X, Search, Trash2, File } from "lucide-react"
+import { deleteUsers, fetchUsers, updateUserStatus } from "@/lib/api"
+import { IUser } from "@/types/userType"
+import { UseStore } from "@/store/app.store"
+import { useNavigate } from "react-router-dom"
 
-// User type definition
-export interface IUser {
-  _id?: string
-  firstName: string
-  lastName: string
-  office: string
-  middleName?: string
-  employeeId: string
-  role: "USER" | "ADMIN"
-  gender: "MALE" | "FEMALE"
-  password: string
-  firstDayOfService: Date
-  position: string
-  salary: number
-  status: "APPROVED" | "REJECTED" | "PENDING"
-  officeDepartment: string
-}
 
 export default function UserApprovalDashboard() {
   const queryClient = useQueryClient()
@@ -32,7 +18,8 @@ export default function UserApprovalDashboard() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [selectAll, setSelectAll] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-
+  const {setUsers} = UseStore()
+  const navigate = useNavigate()
   // Check screen size for responsive design
   useEffect(() => {
     const checkScreenSize = () => {
@@ -54,7 +41,7 @@ export default function UserApprovalDashboard() {
     error,
   } = useQuery<IUser[]>({
     queryKey: ["users"],
-    queryFn: () => getUsers({}).then(data => data.data),
+    queryFn: () => fetchUsers({}).then(data => data.data),
   })
 
   // Status update mutation
@@ -83,6 +70,12 @@ export default function UserApprovalDashboard() {
   const handleBatchApprove = () => {
     if (selectedUsers.length === 0) return
     statusMutation.mutate({ users: selectedUsers, status: "APPROVED" })
+  }
+
+  const handleViewFormSeven = () => {
+    if (selectedUsers.length === 0) return  
+    setUsers(selectedUsers)
+    navigate('/admin/form-seven')
   }
 
   // Handle batch reject action
@@ -215,6 +208,14 @@ export default function UserApprovalDashboard() {
               {selectedUsers.length} user{selectedUsers.length !== 1 ? "s" : ""} selected
             </span>
             <div className="flex-grow"></div>
+            <button
+              className="flex items-center gap-1 px-3 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
+              onClick={handleViewFormSeven}
+              disabled={statusMutation.isPending}
+            >
+              <File  size={16}/>
+              View Form 7
+            </button>
             <button
               className="flex items-center gap-1 px-3 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
               onClick={handleBatchApprove}

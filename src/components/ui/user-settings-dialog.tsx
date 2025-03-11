@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { updateUser } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 
 const userSettingsSchema = z.object({
   middleName: z.string().optional(),
@@ -36,7 +36,7 @@ interface UserSettingsDialogProps {
 
 export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogProps) {
   const { toast } = useToast()
-  const { getUserInfo } = useStore()
+  const { getUserInfo } = UseStore()
   const userInfo = getUserInfo()
 
   const form = useForm<UserSettingsFormData>({

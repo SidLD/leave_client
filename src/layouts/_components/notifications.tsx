@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { io, Socket } from 'socket.io-client';
 import { updateNotification } from '@/lib/api';
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 
 type NotificationType = {
   _id: number;
@@ -23,7 +23,7 @@ export const Notifications = () => {
     const [notifications, setNotifications] = useState<NotificationType[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [expandedNotifications, setExpandedNotifications] = useState<number[]>([]);
-    const { getToken, getUserInfo } = useStore()
+    const { getToken, getUserInfo } = UseStore()
     const [socket, setSocket] = useState<Socket | null>(null);
     const token = getToken();
     useEffect(() => {

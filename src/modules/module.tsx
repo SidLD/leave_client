@@ -2,10 +2,10 @@
 import { Navigate } from "react-router-dom"
 import Guest from '@/layouts/Guest';
 import PrintLayout from '@/layouts/PrintLayout';
-import { useStore } from '@/store/app.store';
+import { UseStore } from '@/store/app.store';
 import DashboardLayout from "@/layouts/DashboardLayout";
 export const PublicLayout = () => {
-   const { getToken , getRole, getExpiration} = useStore()
+   const { getToken , getRole, getExpiration} = UseStore()
     if(getToken() && getExpiration() * 1000 > Date.now()){
         switch (getRole()) {
             case "ADMIN":
@@ -22,7 +22,7 @@ export const PublicLayout = () => {
 }
 
 export const PrivateLayout = () => {
-    const { getToken, getExpiration} = useStore()
+    const { getToken, getExpiration} = UseStore()
     if(getToken() && getExpiration() * 1000 > Date.now()){
         return <DashboardLayout />
     }else{
@@ -31,7 +31,7 @@ export const PrivateLayout = () => {
 }
 
 export const PrivatePrintLayout = () => {
-    const { getToken, getExpiration, clear} = useStore()
+    const { getToken, getExpiration, clear} = UseStore()
     if (!getToken() || getExpiration() * 1000 <= Date.now()) {
         clear()
         return <Navigate to={"/admin-login"} />;

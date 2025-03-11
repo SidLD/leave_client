@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
 import { login } from "@/lib/api"
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -25,7 +25,7 @@ export default function LoginPage() {
   const router = useNavigate()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
-  const { setToken } = useStore()
+  const { setToken } = UseStore()
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })

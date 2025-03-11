@@ -11,14 +11,14 @@ import { Badge } from "@/components/ui/badge"
 import { PlusCircle, Search, Edit, Trash2, Filter, RefreshCw } from "lucide-react"
 import { getLeaveRecords } from "@/lib/api"
 import { LeaveFormType, typeOfLeave } from "@/types/leaveType"
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 
 
 export default function LeaveDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [filteredApplications, setFilteredApplications] = useState<LeaveFormType[]>([])
-  const {getUserInfo} = useStore()
+  const {getUserInfo} = UseStore()
 
   // Use React Query to fetch data
   const {

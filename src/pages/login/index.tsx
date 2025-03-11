@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { login } from "@/lib/api"
 import type { TeacherLoginType } from "@/types/userType"
 import { ClapperboardIcon as ChalkboardTeacher, Eye, EyeOff } from "lucide-react"
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 
@@ -29,7 +29,7 @@ export default function TeacherLoginView() {
   } = useForm<TeacherLoginType>({
     resolver: zodResolver(teacherLoginSchema),
   })
-  const { setToken } = useStore()
+  const { setToken } = UseStore()
   const { toast } = useToast()
   const createMutation = useMutation({
     mutationFn: login,

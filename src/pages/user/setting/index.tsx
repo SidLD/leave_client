@@ -14,7 +14,7 @@ import { Loader2, Eye, EyeOff, Save, User, Lock } from "lucide-react"
 import { userPasswordSchema, userSettingSchema } from "@/types/userType"
 import { useToast } from "@/hooks/use-toast"
 import { getUserSetting, updateUserPassword, updateUserSetting } from "@/lib/api"
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 
 // Create a client
 const queryClient = new QueryClient()
@@ -28,7 +28,7 @@ function UserSettingsContent() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const {toast} = useToast()
 
-  const {getUserInfo} = useStore()
+  const {getUserInfo} = UseStore()
   // Fetch user settings
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ["userSettings"],

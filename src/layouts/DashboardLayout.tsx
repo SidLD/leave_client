@@ -8,10 +8,10 @@ import { Home, LogOut, Menu, X, Settings, User2, File, FileArchive, Bell, Shield
 import { motion, AnimatePresence } from "framer-motion"
 import { Notifications } from "./_components/notifications"
 import { Button } from "@/components/ui/button"
-import { useStore } from "@/store/app.store"
+import { UseStore } from "@/store/app.store"
 
 export default function DashboardLayout() {
-  const { clear, getRole, getUserInfo } = useStore()
+  const { clear, getRole, getUserInfo } = UseStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)

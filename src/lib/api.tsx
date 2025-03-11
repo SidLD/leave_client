@@ -36,7 +36,7 @@ export const deleteUsers = (data:any) => {
   return axios.put(`${import.meta.env.VITE_API_URL}/users`,  data, jsonDataHeader())
 };
 
-export const getUsers = (data:any) => {
+export const fetchUsers = (data:any) => {
     return axios.get(`${import.meta.env.VITE_API_URL}/users`, {
         params:data, ...jsonDataHeader()
     })
@@ -107,4 +107,12 @@ export const updateLeaveRecord = (leaveId: string, data: any) => {
 // Delete a Leave Record
 export const deleteLeaveRecord = (leaveId:string) => {
   return axios.delete(`${import.meta.env.VITE_API_URL}/user-leave/${leaveId}`, { ...jsonDataHeader() });
+};
+
+
+//Payroll
+export const fetchUserPayoll = (data:any) => {
+  return axios.get(`${import.meta.env.VITE_API_URL}/payroll`, {
+      params:data, ...jsonDataHeader()
+  })
 };

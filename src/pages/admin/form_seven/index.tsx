@@ -1,260 +1,258 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
-import { Download } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { PDFDownloadLink } from "@react-pdf/renderer"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Loader2, FileDown } from "lucide-react"
 
-// Types
-interface Employee {
-  empNo: string
-  name: string
-  positionTitle: string
-  status: string
-  basic: number
-  pera: number
-  absences: string
-  cause: string
-  divisionAction: string
-  deductions: string
-  remarks: string
-}
+// Import components and types
+import { PayrollPDF } from "./_components/payroll-pdf"
+import { AbsenceDialog } from "./_components/absence-dialog"
+import { type PayrollPeriod, type AbsenceOrUndertime, months } from "./_components/type"
+import { fetchUserPayoll } from "@/lib/api"
+import { UseStore } from "@/store/app.store"
 
-interface PayrollData {
-  station: string
-  school: string
-  month: string
-  year: string
-  preparedBy: {
-    name: string
-    position: string
+export default function PayrollReport() {
+  const [selectedMonth, setSelectedMonth] = useState<string>(months[0])
+  const [editableData, setEditableData] = useState<PayrollPeriod | null>(null)
+  const {getUsers} = UseStore()
+  
+  const { data, isLoading, error } = useQuery<PayrollPeriod, Error>({
+    queryKey: ["payroll", selectedMonth, getUsers],
+    queryFn: () => fetchUserPayoll({
+      month: selectedMonth,
+      users: getUsers()
+    }).then(data => data.data),
+  })
+
+  useEffect(() => {
+    if (data) {
+      setEditableData(data);
+    }
+  }, [data]) 
+
+  const handleMonthChange = (value: string) => {
+    setSelectedMonth(value)
   }
-  certifiedBy: {
-    name: string
-    position: string
+
+  const handleEmployeeUpdate = (employeeId: string, field: string, value: string) => {
+    if (!editableData) return
+
+    setEditableData({
+      ...editableData,
+      employees: editableData.employees.map((emp) => {
+        if (emp.id === employeeId) {
+          return { ...emp, [field]: value }
+        }
+        return emp
+      }),
+    })
   }
-  approvedBy: {
-    name: string
-    position: string
+
+  const handleAbsenceUpdate = (employeeId: string, absenceData: AbsenceOrUndertime) => {
+    if (!editableData) return
+
+    setEditableData({
+      ...editableData,
+      employees: editableData.employees.map((emp) => {
+        if (emp.id === employeeId) {
+          return { ...emp, abesencesOrUndertime: absenceData }
+        }
+        return emp
+      }),
+    })
   }
-  employees: Employee[]
-}
 
-// Dummy data
-const dummyData: PayrollData = {
-  station: "008 TINAMBACAN II DISTRICT",
-  school: "MANGUINO-O ELEMENTARY SCHOOL (INSULAR)",
-  month: "JANUARY",
-  year: "2025",
-  preparedBy: {
-    name: "ROBIRTH M. ORNOPIA",
-    position: "Teacher-In-Charge/Master Teacher I",
-  },
-  certifiedBy: {
-    name: "ELBERT G. ONGCAL",
-    position: "Public Schools District Supervisor",
-  },
-  approvedBy: {
-    name: "GRACE S. PAGUNSAN",
-    position: "Administrative Officer V",
-  },
-  employees: [
-    {
-      empNo: "6295487",
-      name: "BANGCALE, NAOMI T.",
-      positionTitle: "AO II",
-      status: "P",
-      basic: 30024.0,
-      pera: 2000.0,
-      absences: "14",
-      cause: "1 DAY",
-      divisionAction: "SL",
-      deductions: "01-567",
-      remarks: "WITH PAY",
-    },
-    {
-      empNo: "6295488",
-      name: "DELA CRUZ, JUAN C.",
-      positionTitle: "TEACHER III",
-      status: "P",
-      basic: 29242.0,
-      pera: 2000.0,
-      absences: "0",
-      cause: "",
-      divisionAction: "",
-      deductions: "",
-      remarks: "",
-    },
-    {
-      empNo: "6295489",
-      name: "SANTOS, MARIA L.",
-      positionTitle: "TEACHER II",
-      status: "P",
-      basic: 27828.0,
-      pera: 2000.0,
-      absences: "7",
-      cause: "2 DAYS",
-      divisionAction: "VL",
-      deductions: "01-568",
-      remarks: "WITH PAY",
-    },
-  ],
-}
+  const handleApproverUpdate = (approverField: string, value: string) => {
+    if (!editableData) return
 
-const months = [
-  "JANUARY",
-  "FEBRUARY",
-  "MARCH",
-  "APRIL",
-  "MAY",
-  "JUNE",
-  "JULY",
-  "AUGUST",
-  "SEPTEMBER",
-  "OCTOBER",
-  "NOVEMBER",
-  "DECEMBER",
-]
+    setEditableData({
+      ...editableData,
+      [approverField]: value,
+    })
+  }
 
-export default function PayrollWorksheet() {
-  const [data, setData] = useState<PayrollData>(dummyData)
-  const [selectedMonth, setSelectedMonth] = useState(data.month)
-
-  const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newMonth = event.target.value
-    setSelectedMonth(newMonth)
-    setData((prevData) => ({ ...prevData, month: newMonth }))
-    // Here you would typically fetch new data based on the selected month
-    // For now, we're just updating the month in the state
+  if (error) {
+    return <div className="text-red-500">Error loading payroll data: {error.message}</div>
   }
 
   return (
-    <main className="min-h-screen p-4 bg-gray-50">
-      <div className="max-w-[1200px] mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <select value={selectedMonth} onChange={handleMonthChange} className="p-2 border border-gray-300 rounded">
-            {months.map((month) => (
-              <option key={month} value={month}>
-                {month}
-              </option>
-            ))}
-          </select>
-          <button className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded hover:bg-blue-700">
-            <Download className="w-4 h-4" />
-            Download PDF
-          </button>
-        </div>
-
-        <div className="p-4 bg-white rounded-lg shadow-lg md:p-8">
-          {/* Header */}
-          <div className="mb-6 text-center">
-            <div className="w-16 h-16 mx-auto mb-2 bg-gray-200 rounded-full"></div>
-            <p className="text-xs">Republic of the Philippines</p>
-            <h1 className="text-lg font-bold md:text-xl">Department of Education</h1>
-            <p className="text-xs">REGION VIII</p>
-            <p className="text-xs">SCHOOLS DIVISION OF CALBAYOG CITY</p>
-            <p className="mt-2 text-xs">Implementation of Programs for Basic Education</p>
-            <p className="text-xs">Monthly Payroll Worksheet & Report of Service</p>
-            <p className="mt-2 text-sm font-bold">
-              For the Month of {data.month} {data.year}
-            </p>
-          </div>
-
-          {/* School Info */}
-          <div className="mb-4 text-sm">
-            <p>
-              <span className="font-semibold">Station: </span>
-              {data.station}
-            </p>
-            <p>
-              <span className="font-semibold">School: </span>
-              {data.school}
-            </p>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs border border-collapse border-gray-300 md:text-sm">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-1 py-1 text-left border border-gray-300">Emp. #</th>
-                  <th className="px-1 py-1 text-left border border-gray-300">Name</th>
-                  <th className="px-1 py-1 text-left border border-gray-300">Position Title</th>
-                  <th className="px-1 py-1 text-center border border-gray-300">Status</th>
-                  <th className="px-1 py-1 text-right border border-gray-300">Basic</th>
-                  <th className="px-1 py-1 text-right border border-gray-300">PERA/ACA</th>
-                  <th className="px-1 py-1 text-center border border-gray-300">Absences/ Undertime</th>
-                  <th className="px-1 py-1 text-center border border-gray-300">Cause</th>
-                  <th className="px-1 py-1 text-center border border-gray-300">Division Action</th>
-                  <th className="px-1 py-1 text-center border border-gray-300">Deductions</th>
-                  <th className="px-1 py-1 text-center border border-gray-300">Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.employees.map((employee) => (
-                  <tr key={employee.empNo}>
-                    <td className="px-1 py-1 border border-gray-300">{employee.empNo}</td>
-                    <td className="px-1 py-1 border border-gray-300">{employee.name}</td>
-                    <td className="px-1 py-1 border border-gray-300">{employee.positionTitle}</td>
-                    <td className="px-1 py-1 text-center border border-gray-300">{employee.status}</td>
-                    <td className="px-1 py-1 text-right border border-gray-300">
-                      {employee.basic.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-1 py-1 text-right border border-gray-300">
-                      {employee.pera.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-1 py-1 text-center border border-gray-300">{employee.absences}</td>
-                    <td className="px-1 py-1 text-center border border-gray-300">{employee.cause}</td>
-                    <td className="px-1 py-1 text-center border border-gray-300">{employee.divisionAction}</td>
-                    <td className="px-1 py-1 text-center border border-gray-300">{employee.deductions}</td>
-                    <td className="px-1 py-1 text-center border border-gray-300">{employee.remarks}</td>
-                  </tr>
-                ))}
-                {/* Empty rows */}
-                {[...Array(7)].map((_, index) => (
-                  <tr key={`empty-${index}`}>
-                    {[...Array(11)].map((_, cellIndex) => (
-                      <td key={`empty-cell-${cellIndex}`} className="px-1 py-1 border border-gray-300">
-                        &nbsp;
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Signatures */}
-          <div className="grid grid-cols-1 gap-4 mt-8 text-sm md:grid-cols-3 md:gap-8">
-            <div className="text-center">
-              <p className="mb-2">PREPARED BY:</p>
-              <div className="min-h-[40px] flex items-end justify-center border-b border-black">
-                <p className="font-bold">{data.preparedBy.name}</p>
-              </div>
-              <p className="mt-1 text-xs">{data.preparedBy.position}</p>
+    <div className="container p-4 mx-auto">
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-2xl">Payroll Report</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-64">
+              <label className="block mb-2 text-sm font-medium">Select Month</label>
+              <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="text-center">
-              <p className="mb-2">CERTIFIED CORRECT:</p>
-              <div className="min-h-[40px] flex items-end justify-center border-b border-black">
-                <p className="font-bold">{data.certifiedBy.name}</p>
-              </div>
-              <p className="mt-1 text-xs">{data.certifiedBy.position}</p>
-            </div>
-            <div className="text-center">
-              <p className="mb-2">APPROVED:</p>
-              <div className="min-h-[40px] flex items-end justify-center border-b border-black">
-                <p className="font-bold">{data.approvedBy.name}</p>
-              </div>
-              <p className="mt-1 text-xs">{data.approvedBy.position}</p>
-            </div>
+
+            {editableData && (
+              <PDFDownloadLink
+                document={<PayrollPDF data={editableData} />}
+                fileName={`payroll-${selectedMonth.toLowerCase()}-${editableData.year}.pdf`}
+                className="mt-6"
+              >
+                {({ loading }) => (
+                  <Button disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating PDF...
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4 mr-2" />
+                        Download PDF
+                      </>
+                    )}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            )}
           </div>
 
-          {/* Page Number */}
-          <div className="mt-8">
-            <p className="text-xs">1 of 1</p>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-center">Department of Education</h2>
+            <h3 className="text-center">Implementation of Programs for Basic Education</h3>
+            <h3 className="text-center">Monthly Payroll Worksheet & Report of Service</h3>
+            <h3 className="text-center">For the Month of {selectedMonth} 2024</h3>
+
+            {editableData && (
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <label className="w-24 font-medium">Station:</label>
+                  <Input
+                    value={editableData.station}
+                    onChange={(e) => setEditableData({ ...editableData, station: e.target.value })}
+                    className="max-w-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="font-medium">Approver 1:</label>
+                    <Input
+                      value={editableData.approverOne}
+                      onChange={(e) => handleApproverUpdate("approverOne", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-medium">Approver 2:</label>
+                    <Input
+                      value={editableData.approverTwo}
+                      onChange={(e) => handleApproverUpdate("approverTwo", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-medium">Approver 3:</label>
+                    <Input
+                      value={editableData.approverThree}
+                      onChange={(e) => handleApproverUpdate("approverThree", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-    </main>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin" />
+            </div>
+          ) : editableData ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Emp. ID</TableHead>
+                    <TableHead className="w-[200px]">Name</TableHead>
+                    <TableHead className="w-[200px]">Position Title</TableHead>
+                    <TableHead className="w-[80px]">Status</TableHead>
+                    <TableHead className="w-[120px]">PERA/ACA</TableHead>
+                    <TableHead className="w-[120px]">Remarks</TableHead>
+                    <TableHead className="w-[200px]">Absences/Undertime</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {editableData.employees.map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell className="font-medium">{employee.user.employeeId}</TableCell>
+                      <TableCell>{employee.user.name}</TableCell>
+                      <TableCell>{employee.user.position}</TableCell>
+                      <TableCell>
+                        <Input
+                          value={employee.s}
+                          onChange={(e) => handleEmployeeUpdate(employee.id, "s", e.target.value)}
+                          className="h-8 w-14"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={employee.peraOrAca}
+                          onChange={(e) => handleEmployeeUpdate(employee.id, "peraOrAca", e.target.value)}
+                          className="h-8"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={employee.remark}
+                          onChange={(e) => handleEmployeeUpdate(employee.id, "remark", e.target.value)}
+                          className="h-8"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {employee.abesencesOrUndertime?.incluseiveDate ? (
+                          <div className="text-xs">
+                            <p>
+                              <strong>Date:</strong> {employee.abesencesOrUndertime.incluseiveDate}
+                            </p>
+                            <p>
+                              <strong>Days/Hours:</strong> {employee.abesencesOrUndertime.dayOrHr}
+                            </p>
+                            <p>
+                              <strong>Cause:</strong> {employee.abesencesOrUndertime.cause}
+                            </p>
+                            <p>
+                              <strong>Deduction:</strong> Basic: {employee.abesencesOrUndertime.deduction.basic},
+                              PERA/ACA: {employee.abesencesOrUndertime.deduction.pOrA}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">No absences recorded</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <AbsenceDialog employee={employee} onUpdate={handleAbsenceUpdate} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
